@@ -52,6 +52,21 @@ export function deliverSpec(spec, { quality = 'showcase' } = {}) {
   });
 }
 
+// `c4ify draft c4 <spec> <dir> --json`; returns the receipt and each view's HTML.
+export function draftSpec(spec, { view, quality = 'showcase' } = {}) {
+  return withSpecFile(spec, (file, dir) => {
+    const out = path.join(dir, 'draft');
+    const args = [cli, 'draft', 'c4', file, out, '--quality', quality, '--json', ...(view ? ['--view', view] : [])];
+    const result = spawnSync(process.execPath, args, { encoding: 'utf8' });
+    const receipt = JSON.parse(result.stdout || '{}');
+    const html = {};
+    for (const entry of receipt.views || []) {
+      if (entry.rendered) html[entry.view] = fs.readFileSync(entry.output, 'utf8');
+    }
+    return { status: result.status, receipt, html };
+  });
+}
+
 export function loadExample(name) {
   return JSON.parse(fs.readFileSync(path.join(skillRoot, 'examples', name), 'utf8'));
 }

@@ -11,26 +11,10 @@ import { loadDiagramWithBrandMarks, writeDiagram } from '../shared/cli.mjs';
 import { throwDiagnosticProblems } from '../shared/diagnostics.mjs';
 import { translateMessage } from '../shared/i18n.mjs';
 import { createAdvisories } from '../shared/method.mjs';
-import {
-  cleanAmbiguousCorridorProblems,
-  cleanBorderRunProblems,
-  cleanCrossingProblems,
-  cleanEndpointSideProblems,
-  cleanFlowProblems,
-  cleanLabelRouteClearanceProblems,
-  cleanRouteRhythmProblems,
-  rectsOverlap,
-} from '../shared/geometry.mjs';
 import { drillTarget, indexModel, resolveView } from './resolve.mjs';
-import { hardRuleProblems, modelAdvisories, relationshipAdvisories, viewAdvisories } from './rules.mjs';
-import { assignRows } from './layout.mjs';
-import { createRouter } from './routing.mjs';
-import { buildScene } from './scene.mjs';
-import { createLabeler, segmentLength } from './labels.mjs';
+import { glossaryUsed, hardRuleProblems, modelAdvisories, relationshipAdvisories, viewAdvisories } from './rules.mjs';
+import { composeView, targetFor } from './compose.mjs';
 import { createSvgRenderer, renderViewNav } from './svg.mjs';
-
-const MAX_SPACING_RETRIES = 3;
-const SPACING_STEP = 28;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const { diagram, template, outPath } = await loadDiagramWithBrandMarks({
@@ -86,10 +70,18 @@ if (chapterProblems.length) throwDiagnosticProblems('Guided view validation fail
 
 function viewTitle(candidate) {
   if (candidate.title) return candidate.title;
-  if (candidate.type === 'systemLandscape') {
-    return model.enterprise ? t('c4.view.landscapeOf', { name: model.enterprise }) : t('c4.view.systemLandscape');
-  }
-  return t(`c4.view.${candidate.type}`, { name: index.elements.get(candidate.scope).name });
+  const base = candidate.type === 'systemLandscape'
+    ? (model.enterprise ? t('c4.view.landscapeOf', { name: model.enterprise }) : t('c4.view.systemLandscape'))
+    : t(`c4.view.${candidate.type}`, { name: index.elements.get(candidate.scope).name });
+  // Views of the same type and scope are told apart by their label.
+  const twin = views.some((other) => other !== candidate && other.type === candidate.type && other.scope === candidate.scope);
+  if (!twin || !candidate.label) return base;
+  // A label that repeats the type word ("Containers: web") adds only its rest.
+  const short = t(`c4.view.short.${candidate.type}`);
+  const label = candidate.label.toLowerCase().startsWith(short.toLowerCase())
+    ? candidate.label.slice(short.length).replace(/^\s*[:·-]?\s*/, '')
+    : candidate.label;
+  return `${base}: ${label || candidate.label}`;
 }
 
 function typeName(element) {
@@ -103,97 +95,61 @@ function drillFor(element) {
 }
 
 // ---------------------------------------------------------------------------
-// Layout, routing and labels (retried with more spacing when a label has no
-// free spot; the geometry gates below report whatever remains)
+// Layout search, composition gates and first-screen fit (compose.mjs)
 // ---------------------------------------------------------------------------
-const { cells, boundaryRows, sideIds } = assignRows(view, resolved, view.layout?.max_per_row || 4);
-const routeHints = view.routes || [];
+const isShowcase = (process.env.ARCHIFY_QUALITY_PROFILE || meta.quality_profile) === 'showcase';
+const draft = process.env.C4IFY_DRAFT === '1';
 
-function relationsFor() {
-  return resolved.relationships.map((relationship) => {
-    const hint = routeHints.find((route) => route.from === relationship.from && route.to === relationship.to) || {};
-    const { from: _from, to: _to, ...geometry } = hint;
-    return {
-      ...geometry,
-      id: relationship.id,
-      from: relationship.from,
-      to: relationship.to,
-      label: relationship.description,
-      description: relationship.description,
-      technology: relationship.technology,
-      variant: relationship.async ? 'dashed' : 'default',
-      count: relationship.count,
-    };
-  });
+// Text this view draws, to show only the glossary terms it actually uses.
+const drawnText = [
+  ...resolved.elements.flatMap((element) => [element.name, element.description, element.technology]),
+  ...resolved.relationships.flatMap((relationship) => [relationship.description, relationship.technology]),
+  resolved.boundary?.name,
+].filter(Boolean).join('\n');
+// Terms used inside the explanation of a used term are printed too.
+let glossaryEntries = glossaryUsed(meta.glossary, drawnText);
+for (let depth = 0; depth < 3; depth += 1) {
+  const extended = glossaryUsed(meta.glossary, [drawnText, ...glossaryEntries.map(([, meaning]) => meaning)].join('\n'));
+  if (extended.length === glossaryEntries.length) break;
+  glossaryEntries = extended;
 }
 
-function compose(gapBoost) {
-  const scene = buildScene({ view, resolved, cells, boundaryRows, sideIds, t, typeName, viewIndex, gapBoost });
-  const relations = relationsFor();
-  const router = createRouter(scene.boxes, relations);
-  const labeler = createLabeler({ boxes: scene.boxes, boundary: scene.boundary, relations, router, fonts: scene.fonts });
-  const { labels, failures } = labeler.placeAll();
-  return { scene, relations, router, labels, failures, titleRect: labeler.titleRect };
+const composed = composeView({
+  view,
+  viewIndex,
+  resolved,
+  t,
+  typeName,
+  glossaryEntries,
+  profile: meta.quality_profile,
+  target: targetFor(view, views.length, (diagram.cards || []).length),
+});
+const { layout } = composed;
+const problems = [...composed.problems];
+if (!composed.fits && isShowcase) {
+  const { viewW, viewH } = layout.scene;
+  const target = targetFor(view, views.length, (diagram.cards || []).length);
+  const why = views.length > 6 ? ' (more than 6 views wrap the navigation bar onto a second row)' : '';
+  problems.push(`[viewport/fit] View "${view.key}" is ${Math.round(viewW)}×${Math.round(viewH)} (${composed.ratio.toFixed(2)}:1) and needs scrolling at 1440×900; this model needs ${target.toFixed(2)}:1 or wider${why}. Split the view, hide shared relationships with exclude_relationships, exclude elements, or accept scrolling with layout.fit "scroll".`);
 }
-
-let layout = compose(0);
-for (let attempt = 1; attempt <= MAX_SPACING_RETRIES && layout.failures.length && !view.layout?.gap_x && !view.layout?.gap_y; attempt += 1) {
-  layout = compose(attempt * SPACING_STEP);
+if (problems.length && !draft) {
+  throwDiagnosticProblems('C4 layout validation failed', problems, { subject: { ...subject, view: view.key } });
 }
-const { scene, relations, router, labels, failures, titleRect } = layout;
-if (scene.problems.length) throwDiagnosticProblems('C4 layout validation failed', scene.problems, { subject });
-
-// ---------------------------------------------------------------------------
-// Composition gates (same contracts as Archify's architecture renderer)
-// ---------------------------------------------------------------------------
-function compositionProblems() {
-  const pathFor = (relation) => router.pathFor(relation);
-  const endpointIds = new Set(scene.boxes.keys());
-  const frames = scene.boundary ? [{ ...scene.boundary, kind: 'boundary', radius: 12 }] : [];
-  const routeHint = `set fromSide/toSide, route or via for this pair in views[${viewIndex}].routes, or move an element with placement`;
-  const profile = meta.quality_profile;
-  const common = { relations, endpointIds, pathFor, diagramType: 'c4', relationCollection: 'relationships', profile, routeHint };
-  const problems = [
-    ...cleanEndpointSideProblems({ ...common, fromSideFor: (relation) => router.endpointSide(relation, 'source'), toSideFor: (relation) => router.endpointSide(relation, 'target') }),
-    ...cleanFlowProblems({ ...common, obstacles: scene.boxes.values(), obstacleKind: 'element' }),
-    ...cleanCrossingProblems(common),
-    ...cleanAmbiguousCorridorProblems(common),
-    ...cleanBorderRunProblems({ ...common, frames }),
-    ...cleanRouteRhythmProblems(common),
-  ];
-  for (const failure of failures) {
-    const where = failure.fits ? 'has no free spot clear of elements, other labels and routes' : `does not fit its ${Math.round(segmentLength(failure.segment))}px segment`;
-    problems.push(`The label "${failure.relation.description}" (${failure.relation.from} → ${failure.relation.to}) ${where}; set labelAt or labelDx/labelDy for this pair in views[${viewIndex}].routes, raise layout.gap_x/gap_y, or move an element with placement.`);
-  }
-  const labelRects = relations.map((relation, relationIndex) => ({ relation, relationIndex, label: relation.label, ...labels.get(relation) }));
-  for (const rect of labelRects) {
-    for (const box of scene.boxes.values()) {
-      if (rectsOverlap(rect, box, -2) && !failures.some((failure) => failure.relation === rect.relation)) {
-        problems.push(`The label "${rect.label}" (${rect.relation.from} → ${rect.relation.to}) overlaps "${box.id}"; adjust labelAt/labelDx/labelDy for this pair in views[${viewIndex}].routes.`);
-      }
-    }
-  }
-  problems.push(...cleanLabelRouteClearanceProblems({ ...common, labels: labelRects }));
-  return problems;
+if (draft) {
+  // Notation findings belong in the draft too, so one look shows everything.
+  for (const entry of advisories.list()) if (!entry.waived) problems.push(`method/${entry.rule}: ${entry.message}`);
+  // The CLI's draft command reads this line; the artifact shows the problems.
+  process.stderr.write(`C4IFY_DRAFT_PROBLEMS ${JSON.stringify({ view: view.key, candidate: layout.candidate, ratio: Number(composed.ratio.toFixed(2)), problems })}\n`);
 }
-
-const composition = compositionProblems();
-if (composition.length) throwDiagnosticProblems('C4 composition validation failed', composition, { subject: { ...subject, view: view.key } });
 
 // ---------------------------------------------------------------------------
 // Render
 // ---------------------------------------------------------------------------
 const svgMeta = { ...meta, title: viewTitle(view), subtitle: view.description || meta.subtitle };
-const { renderSvg } = createSvgRenderer({ meta, locale, t, index, view, scene, relations, router, labels, titleRect, typeName, viewTitle, drillFor });
-
-function cards() {
-  const list = [...(diagram.cards || [])];
-  const glossary = Object.entries(meta.glossary || {});
-  if (glossary.length) {
-    list.push({ dot: 'slate', title: t('c4.glossary.title'), items: glossary.map(([term, meaning]) => t('c4.glossary.item', { term, meaning })) });
-  }
-  return list;
-}
+const { renderSvg, renderDraftPanel } = createSvgRenderer({
+  meta, locale, t, index, view, scene: layout.scene, relations: layout.relations, router: layout.router,
+  labels: layout.labels, titleRect: layout.titleRect, typeName, viewTitle, drillFor, problems: draft ? problems : [],
+});
 
 writeDiagram({
   outPath,
@@ -201,7 +157,7 @@ writeDiagram({
   diagramType: 'c4',
   meta: { ...meta, title: viewTitle(view), subtitle: view.description || meta.subtitle || meta.title },
   svg: renderSvg(svgMeta, advisories.render()),
-  cards: cards(),
-  viewNav: renderViewNav({ views, view, index, model, t, viewTitle }),
+  cards: diagram.cards || [],
+  viewNav: `${renderViewNav({ views, view, index, model, t, viewTitle })}${draft ? renderDraftPanel() : ''}`,
   guidedViews: view.chapters || [],
 });

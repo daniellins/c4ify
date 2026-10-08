@@ -111,7 +111,12 @@ export function resolveView(index, view) {
   }
   for (const id of view.exclude || []) visible.delete(id);
 
-  const relationships = liftRelationships(index, new Set(visible.keys()));
+  // exclude_relationships hides arrows as drawn (after lifting), e.g. every
+  // service's call to a shared config or tracing server: { from: "*", to: "config" }.
+  const hidden = view.exclude_relationships || [];
+  const matches = (pattern, id) => pattern === '*' || pattern === id;
+  const relationships = liftRelationships(index, new Set(visible.keys()))
+    .filter((relationship) => !hidden.some((rule) => matches(rule.from, relationship.from) && matches(rule.to, relationship.to)));
   return {
     elements: [...visible.values()],
     core: core.filter((element) => visible.has(element.id)),
@@ -159,6 +164,7 @@ export function liftRelationships(index, visibleIds) {
         technology: relationship.technology,
         async: relationship.async === true,
         sources: [relationship],
+        technologies: new Set(relationship.technology ? [relationship.technology] : []),
         direct,
         order,
       });
@@ -173,16 +179,18 @@ export function liftRelationships(index, visibleIds) {
         async: relationship.async === true,
         direct: true,
       });
-    } else if (!entry.direct && (entry.technologyConflict || entry.technology !== relationship.technology)) {
-      // Implied relationships that disagree on technology (including one
-      // that names none) keep none, rather than claiming one protocol for all.
-      entry.technology = undefined;
-      entry.technologyConflict = true;
     }
+    if (relationship.technology) entry.technologies.add(relationship.technology);
   });
   return [...merged.values()]
     .sort((left, right) => left.order - right.order)
-    .map((entry, index) => ({ ...entry, id: `r${index + 1}`, count: entry.sources.length }));
+    .map((entry, index) => ({
+      ...entry,
+      // A merged arrow names every protocol it stands for, not just one.
+      technology: entry.direct || entry.technologies.size <= 1 ? entry.technology || [...entry.technologies][0] : [...entry.technologies].join(', '),
+      id: `r${index + 1}`,
+      count: entry.sources.length,
+    }));
 }
 
 // C4 kind used for color, legend and the viewer's Semantic Lens.

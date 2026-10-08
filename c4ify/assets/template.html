@@ -4814,6 +4814,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .c4-nav span.c4-nav-current { background: var(--frontend-fill, rgba(34,211,238,.12)); border-color: var(--frontend-stroke, #22d3ee); font-weight: 600; }
     .c4-nav small { opacity: .7; margin-left: 4px; }
     @media print { .c4-nav { display: none; } }
+    /* c4ify draft mode: problems outlined on the diagram and listed above it. */
+    .c4-problem { fill: none; stroke: #ef4444; stroke-width: 2.5; stroke-dasharray: 6,3; }
+    .c4-problem-edge { fill: none; stroke: #ef4444; stroke-width: 4; stroke-opacity: .55; }
+    .c4-draft { margin: 0 0 10px; padding: 8px 12px; border: 1px solid #ef4444; border-radius: 8px; font-size: 12px; max-height: 180px; overflow: auto; }
+    .c4-draft summary { cursor: pointer; font-weight: 600; color: #ef4444; }
+    .c4-draft ol { margin: 6px 0 0 18px; padding: 0; }
+    .c4-draft li { margin: 3px 0; }
     .c-lane           { fill: var(--lane-fill); stroke: var(--lane-stroke); stroke-dasharray: 6,6; }
 
     /* Optional trace animation, enabled only by meta.animation = "trace".

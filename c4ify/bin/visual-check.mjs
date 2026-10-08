@@ -691,6 +691,20 @@ function persistReceipt(outputs, receipt) {
   writeAtomic(outputs.receipt, `${JSON.stringify(receipt, null, 2)}\n`);
 }
 
+// One quick capture for drafts: a single viewport and theme, no receipt.
+// Returns whether the page fits the viewport without scrolling.
+export async function captureSnapshot({ artifactPath, screenshotPath, width = 1440, height = 900, theme = 'light' }) {
+  const chrome = findChrome();
+  if (!chrome) throw new Error('Chrome or Chromium is unavailable. Set ARCHIFY_CHROME to its executable path.');
+  const browser = new ChromeVisualBrowser(chrome);
+  try {
+    const metrics = await browser.inspect({ artifactPath: path.resolve(artifactPath), width, height, theme, screenshotPath });
+    return { screenshot: screenshotPath, scrollHeight: metrics?.scrollHeight, fitsScreen: Number.isFinite(metrics?.scrollHeight) ? metrics.scrollHeight <= height + 1 : null };
+  } finally {
+    await browser.close();
+  }
+}
+
 export async function runVisualCheck({
   artifactPath,
   chromePath,

@@ -115,6 +115,7 @@ export function createLabeler({ boxes, boundary, relations, router, fonts }) {
     const winner = candidates.find((candidate) => candidate.text.fits && isClear(candidate.rect, relation, placed));
     if (winner) return { rect: winner.rect, placed: true, fits: true };
     const fallback = candidates[0];
+    if (!fallback) return { rect: { x: 0, y: 0, width: 0, height: 0, lines: [], cx: 0, cy: 0 }, placed: false, fits: false, segment: null };
     return { rect: fallback.rect, placed: false, fits: fallback.text.fits, segment: fallback.segment };
   }
 

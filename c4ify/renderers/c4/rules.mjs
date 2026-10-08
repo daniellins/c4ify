@@ -115,7 +115,7 @@ const ACRONYM = /(?<![\p{L}\p{N}])\p{Lu}[\p{Lu}\p{N}]{1,5}s?(?![\p{L}\p{N}])/gu;
 // so one view's showcase gate never fails on an element it does not show.
 // Orphans (drawn by no view) are reported once, in the first view.
 export function modelAdvisories({ model, glossary: glossaryMap, advisories, t, shownHere, shownAnywhere, isFirstView }) {
-  const glossary = new Set(Object.keys(glossaryMap || {}).map((key) => key.toUpperCase()));
+  const glossary = glossaryTerms(glossaryMap);
   for (const element of model.elements) {
     if (!shownHere.has(element.id)) {
       if (isFirstView && !shownAnywhere.has(element.id)) advisories.warn('R-C4-12', t('c4.rule.orphan', { name: element.name }), element.id);
@@ -135,7 +135,7 @@ export function modelAdvisories({ model, glossary: glossaryMap, advisories, t, s
 // Relationship labels are checked as drawn in the view (after lifting), so an
 // implied relationship carries the same notation duties as an authored one.
 export function relationshipAdvisories(resolved, glossaryMap, advisories, t) {
-  const glossary = new Set(Object.keys(glossaryMap || {}).map((key) => key.toUpperCase()));
+  const glossary = glossaryTerms(glossaryMap);
   for (const relationship of resolved.relationships) {
     const description = (relationship.description || '').trim();
     if (description && VAGUE.has(description.toLowerCase())) {
@@ -144,6 +144,25 @@ export function relationshipAdvisories(resolved, glossaryMap, advisories, t) {
     const unknown = unknownAcronyms(description, glossary);
     if (unknown.length) advisories.warn('R-C4-09', t('c4.rule.acronymRel', { text: description, list: unknown.join(', ') }), relationship.from);
   }
+}
+
+// Acronyms a glossary covers: each key ("EF Core") and each of its words
+// ("EF", "CORE"), upper-cased.
+export function glossaryTerms(glossaryMap) {
+  const terms = new Set();
+  for (const key of Object.keys(glossaryMap || {})) {
+    terms.add(key.toUpperCase());
+    for (const word of key.split(/\s+/)) terms.add(word.toUpperCase());
+  }
+  return terms;
+}
+
+// Glossary entries whose term appears in the given text (a view's drawn text).
+export function glossaryUsed(glossaryMap, text) {
+  return Object.entries(glossaryMap || {}).filter(([term]) => {
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(?<![\\p{L}\\p{N}])${escaped}s?(?![\\p{L}\\p{N}])`, 'u').test(text);
+  });
 }
 
 function unknownAcronyms(text, glossary) {

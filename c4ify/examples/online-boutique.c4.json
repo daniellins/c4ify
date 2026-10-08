@@ -1,0 +1,360 @@
+{
+  "schema_version": 1,
+  "diagram_type": "c4",
+  "meta": {
+    "title": "Online Boutique",
+    "subtitle": "C4 model of Google's cloud-native microservices demo shop (GoogleCloudPlatform/microservices-demo).",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "glossary": {
+      "gRPC": "Google Remote Procedure Call: binary RPC over HTTP/2 with Protocol Buffers contracts (protos/demo.proto)",
+      "RESP": "Redis Serialization Protocol, the wire protocol Redis clients speak over TCP",
+      "RAG": "Retrieval-Augmented Generation: the LLM answers using products retrieved from a vector store",
+      "LLM": "Large Language Model",
+      "AI": "Artificial Intelligence",
+      "API": "Application Programming Interface",
+      "QPS": "Queries Per Second"
+    }
+  },
+  "model": {
+    "elements": [
+      {
+        "id": "shopper",
+        "type": "person",
+        "name": "Shopper",
+        "description": "Browses products, fills a cart and places orders without signing up."
+      },
+      {
+        "id": "boutique",
+        "type": "softwareSystem",
+        "name": "Online Boutique",
+        "description": "Web shop for vintage items built as gRPC microservices on Kubernetes."
+      },
+      {
+        "id": "frontend",
+        "type": "container",
+        "parent": "boutique",
+        "name": "frontend",
+        "technology": "Go",
+        "description": "Serves the website over HTTP and creates a session ID for every visitor."
+      },
+      {
+        "id": "checkout",
+        "type": "container",
+        "parent": "boutique",
+        "name": "checkoutservice",
+        "technology": "Go",
+        "description": "Places orders: reads the cart, charges, ships and sends the confirmation."
+      },
+      {
+        "id": "cart",
+        "type": "container",
+        "parent": "boutique",
+        "name": "cartservice",
+        "technology": "C#",
+        "description": "Adds, reads and empties each user's shopping cart."
+      },
+      {
+        "id": "catalog",
+        "type": "container",
+        "parent": "boutique",
+        "name": "productcatalogservice",
+        "technology": "Go",
+        "description": "Lists, searches and returns products from a JSON file."
+      },
+      {
+        "id": "currency",
+        "type": "container",
+        "parent": "boutique",
+        "name": "currencyservice",
+        "technology": "Node.js",
+        "description": "Converts money between currencies; the highest-QPS service."
+      },
+      {
+        "id": "payment",
+        "type": "container",
+        "parent": "boutique",
+        "name": "paymentservice",
+        "technology": "Node.js",
+        "description": "Charges the credit card (mock) and returns a transaction ID."
+      },
+      {
+        "id": "shipping",
+        "type": "container",
+        "parent": "boutique",
+        "name": "shippingservice",
+        "technology": "Go",
+        "description": "Quotes shipping cost for a cart and ships orders (mock)."
+      },
+      {
+        "id": "email",
+        "type": "container",
+        "parent": "boutique",
+        "name": "emailservice",
+        "technology": "Python",
+        "description": "Sends the order confirmation email (mock)."
+      },
+      {
+        "id": "recommendation",
+        "type": "container",
+        "parent": "boutique",
+        "name": "recommendationservice",
+        "technology": "Python",
+        "description": "Recommends other products based on what is in the cart."
+      },
+      {
+        "id": "ad",
+        "type": "container",
+        "parent": "boutique",
+        "name": "adservice",
+        "technology": "Java",
+        "description": "Returns text ads matching the given context words."
+      },
+      {
+        "id": "assistant",
+        "type": "container",
+        "parent": "boutique",
+        "name": "shoppingassistantservice",
+        "technology": "Python, Flask, LangChain",
+        "description": "Optional add-on: AI assistant that suggests products using RAG."
+      },
+      {
+        "id": "loadgen",
+        "type": "container",
+        "parent": "boutique",
+        "name": "loadgenerator",
+        "technology": "Python, Locust",
+        "description": "Continuously replays realistic shopping flows against the frontend."
+      },
+      {
+        "id": "redis",
+        "type": "container",
+        "parent": "boutique",
+        "name": "redis-cart",
+        "technology": "Redis",
+        "shape": "database",
+        "description": "Stores the contents of every shopping cart."
+      },
+      {
+        "id": "gemini",
+        "type": "softwareSystem",
+        "external": true,
+        "name": "Google Gemini API",
+        "description": "Generative AI model that writes answers and product embeddings."
+      },
+      {
+        "id": "alloydb",
+        "type": "softwareSystem",
+        "external": true,
+        "name": "AlloyDB for PostgreSQL",
+        "description": "Managed Google Cloud database holding the product vector store."
+      }
+    ],
+    "relationships": [
+      {
+        "from": "shopper",
+        "to": "frontend",
+        "description": "Browses and buys using",
+        "technology": "HTTP"
+      },
+      {
+        "from": "loadgen",
+        "to": "frontend",
+        "description": "Sends simulated shopping traffic to",
+        "technology": "HTTP"
+      },
+      {
+        "from": "frontend",
+        "to": "catalog",
+        "description": "Lists and fetches products from",
+        "technology": "gRPC"
+      },
+      {
+        "from": "frontend",
+        "to": "currency",
+        "description": "Converts prices and lists currencies via",
+        "technology": "gRPC"
+      },
+      {
+        "from": "frontend",
+        "to": "cart",
+        "description": "Adds items and reads the cart via",
+        "technology": "gRPC"
+      },
+      {
+        "from": "frontend",
+        "to": "recommendation",
+        "description": "Gets product recommendations from",
+        "technology": "gRPC"
+      },
+      {
+        "from": "frontend",
+        "to": "shipping",
+        "description": "Gets shipping quotes from",
+        "technology": "gRPC"
+      },
+      {
+        "from": "frontend",
+        "to": "checkout",
+        "description": "Places orders through",
+        "technology": "gRPC"
+      },
+      {
+        "from": "frontend",
+        "to": "ad",
+        "description": "Gets contextual ads from",
+        "technology": "gRPC"
+      },
+      {
+        "from": "frontend",
+        "to": "assistant",
+        "description": "Forwards assistant questions to",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "checkout",
+        "to": "cart",
+        "description": "Reads and empties the cart via",
+        "technology": "gRPC"
+      },
+      {
+        "from": "checkout",
+        "to": "catalog",
+        "description": "Looks up ordered products in",
+        "technology": "gRPC"
+      },
+      {
+        "from": "checkout",
+        "to": "currency",
+        "description": "Converts order totals via",
+        "technology": "gRPC"
+      },
+      {
+        "from": "checkout",
+        "to": "shipping",
+        "description": "Quotes and ships the order via",
+        "technology": "gRPC"
+      },
+      {
+        "from": "checkout",
+        "to": "payment",
+        "description": "Charges the card via",
+        "technology": "gRPC"
+      },
+      {
+        "from": "checkout",
+        "to": "email",
+        "description": "Sends the order confirmation via",
+        "technology": "gRPC"
+      },
+      {
+        "from": "recommendation",
+        "to": "catalog",
+        "description": "Reads the product list from",
+        "technology": "gRPC"
+      },
+      {
+        "from": "cart",
+        "to": "redis",
+        "description": "Reads and writes carts in",
+        "technology": "RESP/TCP"
+      },
+      {
+        "from": "assistant",
+        "to": "gemini",
+        "description": "Generates answers and embeddings with",
+        "technology": "HTTPS"
+      },
+      {
+        "from": "assistant",
+        "to": "alloydb",
+        "description": "Searches similar products in",
+        "technology": "PostgreSQL wire protocol"
+      }
+    ]
+  },
+  "views": [
+    {
+      "key": "context",
+      "type": "systemContext",
+      "scope": "boutique",
+      "label": "System Context",
+      "description": "Online Boutique, the shopper who uses it, and the Google Cloud services the optional shopping assistant depends on."
+    },
+    {
+      "key": "containers-browse",
+      "type": "container",
+      "scope": "boutique",
+      "label": "Containers: browsing",
+      "description": "Browsing flow: the gRPC services the frontend calls to render pages, the cart store and the load generator. The call to checkoutservice and the AI assistant are in their own views.",
+      "exclude": [
+        "payment",
+        "email",
+        "assistant",
+        "gemini",
+        "alloydb",
+        "checkout"
+      ],
+      "exclude_relationships": [
+        {
+          "from": "checkout",
+          "to": "*"
+        }
+      ]
+    },
+    {
+      "key": "containers-checkout",
+      "type": "container",
+      "scope": "boutique",
+      "label": "Containers: checkout",
+      "description": "Checkout flow: how checkoutservice orchestrates cart, catalog, currency, shipping, payment and email over gRPC. Browsing calls from the frontend and the cart store are in the browsing view.",
+      "exclude": [
+        "loadgen",
+        "ad",
+        "recommendation",
+        "assistant",
+        "gemini",
+        "alloydb",
+        "redis"
+      ],
+      "exclude_relationships": [
+        {
+          "from": "frontend",
+          "to": "cart"
+        },
+        {
+          "from": "frontend",
+          "to": "catalog"
+        },
+        {
+          "from": "frontend",
+          "to": "currency"
+        },
+        {
+          "from": "frontend",
+          "to": "shipping"
+        }
+      ]
+    },
+    {
+      "key": "containers-assistant",
+      "type": "container",
+      "scope": "boutique",
+      "label": "Containers: AI assistant",
+      "description": "Optional shopping assistant add-on (kustomize component): the frontend forwards questions to a RAG service backed by Gemini and AlloyDB.",
+      "exclude": [
+        "loadgen",
+        "ad",
+        "recommendation",
+        "checkout",
+        "cart",
+        "catalog",
+        "currency",
+        "shipping",
+        "payment",
+        "email",
+        "redis"
+      ]
+    }
+  ]
+}

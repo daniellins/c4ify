@@ -25,8 +25,22 @@ entre as visões para descer do panorama até os componentes.
 > método do bizify, e acrescenta o modelo C4. Para diagramas livres de arquitetura, sequência ou
 > fluxo de dados, use o Archify; para diagramas de negócio (EAP, BPMN, VSM…), use o bizify.
 
-As capturas de tela chegam com a primeira versão. Até lá, `node bin/c4ify.mjs demo` gera os
-exemplos localmente.
+## Galeria
+
+Sistemas reais, modelados por um agente com o c4ify a partir dos repositórios públicos
+(fontes em [examples/README.md](c4ify/examples/README.md)). Todas as visões passam no
+`--quality showcase` e cabem numa tela de 1440×900.
+
+| | |
+|---|---|
+| ![Spring PetClinic, contêineres](docs/images/spring-petclinic-conteineres-aplicacao.png) | ![Loja On-line, contêineres, tema escuro](docs/images/online-store-conteineres.png) |
+| **Spring PetClinic Microservices**: contêineres | **Loja On-line** (fictícia): contêineres, tema escuro |
+| ![eShop, componentes da Ordering API](docs/images/eshop-ordering-components.png) | ![Online Boutique, checkout](docs/images/online-boutique-containers-checkout.png) |
+| **eShop**: componentes da Ordering API | **Online Boutique**: contêineres do checkout |
+
+Cada modelo é um arquivo JSON em [`c4ify/examples/`](c4ify/examples/); entregue qualquer um com
+`node bin/c4ify.mjs deliver c4 examples/<modelo>.c4.json <pasta>` e clique duas vezes num
+elemento marcado com ⊕ para abrir o nível seguinte.
 
 ## Por que usar
 

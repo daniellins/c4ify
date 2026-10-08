@@ -1,0 +1,936 @@
+{
+  "schema_version": 1,
+  "diagram_type": "c4",
+  "meta": {
+    "title": "eShop",
+    "subtitle": "C4 model of the .NET eShop reference application, derived from eShop.AppHost and the service projects.",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "glossary": {
+      "BFF": "Backend for Frontend, a gateway tailored to one client",
+      "YARP": "Yet Another Reverse Proxy, Microsoft's .NET reverse proxy",
+      "gRPC": "Google Remote Procedure Call, binary RPC over HTTP/2",
+      "AMQP": "Advanced Message Queuing Protocol, spoken by RabbitMQ",
+      "OIDC": "OpenID Connect, the sign-in and token protocol",
+      "EF Core": "Entity Framework Core, the .NET object-relational mapper",
+      "MAUI": ".NET Multi-platform App UI, cross-platform native apps",
+      "RESP": "Redis Serialization Protocol",
+      "SQL": "Structured Query Language",
+      "JSON": "JavaScript Object Notation",
+      "HTTP": "Hypertext Transfer Protocol",
+      "HTTPS": "HTTP over TLS",
+      "API": "Application Programming Interface",
+      "ASP.NET": "Microsoft's web framework for .NET"
+    }
+  },
+  "model": {
+    "elements": [
+      {
+        "id": "customer",
+        "type": "person",
+        "name": "Customer",
+        "description": "Browses the catalogue, fills a basket and places and tracks orders."
+      },
+      {
+        "id": "partner",
+        "type": "person",
+        "name": "Webhook Subscriber",
+        "description": "Registers webhooks to be told when orders are paid or shipped."
+      },
+      {
+        "id": "eshop",
+        "type": "softwareSystem",
+        "name": "eShop",
+        "description": "Online store: catalogue, basket, ordering, payment simulation and webhooks."
+      },
+      {
+        "id": "foundry",
+        "type": "softwareSystem",
+        "external": true,
+        "name": "Microsoft Foundry (optional)",
+        "description": "Hosts the chat and text-embedding models used when UseFoundry is set."
+      },
+      {
+        "id": "webapp",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Web App",
+        "technology": "ASP.NET Core, Blazor Server",
+        "description": "Online store UI with AI chat; shows live order status."
+      },
+      {
+        "id": "mobileapp",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Mobile App",
+        "technology": ".NET MAUI",
+        "description": "Native shopping app for Android, iOS, Windows and macOS."
+      },
+      {
+        "id": "bff",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Mobile BFF",
+        "technology": "YARP reverse proxy",
+        "description": "Routes mobile catalogue, order and identity calls to the services."
+      },
+      {
+        "id": "identity",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Identity API",
+        "technology": "Duende IdentityServer",
+        "description": "Signs users in and issues access tokens to the apps and APIs."
+      },
+      {
+        "id": "basket",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Basket API",
+        "technology": "ASP.NET Core gRPC service",
+        "description": "Keeps each customer's shopping basket."
+      },
+      {
+        "id": "catalog",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Catalog API",
+        "technology": "ASP.NET Core Minimal API",
+        "description": "Serves products, brands, pictures and semantic search; confirms stock."
+      },
+      {
+        "id": "ordering",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Ordering API",
+        "technology": "ASP.NET Core Minimal API",
+        "description": "Creates orders and drives their status through validation, payment and shipping."
+      },
+      {
+        "id": "orderproc",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Order Processor",
+        "technology": ".NET worker service",
+        "description": "Confirms orders whose grace period has expired."
+      },
+      {
+        "id": "payproc",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Payment Processor",
+        "technology": ".NET worker service",
+        "description": "Simulates payment for orders whose stock is confirmed."
+      },
+      {
+        "id": "webhooks",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Webhooks API",
+        "technology": "ASP.NET Core Minimal API",
+        "description": "Stores webhook subscriptions and posts order and price events to them."
+      },
+      {
+        "id": "webhookclient",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Webhook Client",
+        "technology": "ASP.NET Core, Blazor",
+        "description": "Sample client that registers webhooks and shows the ones received."
+      },
+      {
+        "id": "eventbus",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Event Bus",
+        "technology": "RabbitMQ",
+        "shape": "queue",
+        "description": "Carries integration events between the services."
+      },
+      {
+        "id": "redis",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Basket Store",
+        "technology": "Redis",
+        "shape": "database",
+        "description": "Holds baskets keyed by buyer."
+      },
+      {
+        "id": "catalogdb",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Catalog Database",
+        "technology": "PostgreSQL + pgvector",
+        "shape": "database",
+        "description": "Stores products, brands, types and their embeddings."
+      },
+      {
+        "id": "identitydb",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Identity Database",
+        "technology": "PostgreSQL",
+        "shape": "database",
+        "description": "Stores user accounts."
+      },
+      {
+        "id": "orderingdb",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Ordering Database",
+        "technology": "PostgreSQL",
+        "shape": "database",
+        "description": "Stores orders, buyers, payment methods and the outbox of events."
+      },
+      {
+        "id": "webhooksdb",
+        "type": "container",
+        "parent": "eshop",
+        "name": "Webhooks Database",
+        "technology": "PostgreSQL",
+        "shape": "database",
+        "description": "Stores webhook subscriptions."
+      },
+      {
+        "id": "ord_api",
+        "type": "component",
+        "parent": "ordering",
+        "name": "Orders Endpoints",
+        "technology": "ASP.NET Core Minimal API",
+        "description": "Versioned /api/orders routes: create, draft, cancel, ship and list orders."
+      },
+      {
+        "id": "ord_commands",
+        "type": "component",
+        "parent": "ordering",
+        "name": "Command Handlers",
+        "technology": "MediatR, FluentValidation",
+        "description": "Validate, log and run create, cancel, ship and status commands in one transaction."
+      },
+      {
+        "id": "ord_queries",
+        "type": "component",
+        "parent": "ordering",
+        "name": "Order Queries",
+        "technology": "EF Core",
+        "description": "Reads orders, order summaries and card types for display."
+      },
+      {
+        "id": "ord_domain",
+        "type": "component",
+        "parent": "ordering",
+        "name": "Order and Buyer Aggregates",
+        "technology": "Ordering.Domain",
+        "description": "Enforces order and buyer rules and raises domain events."
+      },
+      {
+        "id": "ord_repos",
+        "type": "component",
+        "parent": "ordering",
+        "name": "Repositories and OrderingContext",
+        "technology": "EF Core, Npgsql",
+        "description": "Persists aggregates and dispatches their domain events on save."
+      },
+      {
+        "id": "ord_domainhandlers",
+        "type": "component",
+        "parent": "ordering",
+        "name": "Domain Event Handlers",
+        "technology": "MediatR notifications",
+        "description": "Update buyers and turn status changes into integration events."
+      },
+      {
+        "id": "ord_outbox",
+        "type": "component",
+        "parent": "ordering",
+        "name": "Integration Event Service",
+        "technology": "EF Core outbox",
+        "description": "Saves integration events with the transaction, then publishes them."
+      },
+      {
+        "id": "ord_inthandlers",
+        "type": "component",
+        "parent": "ordering",
+        "name": "Integration Event Handlers",
+        "technology": "EventBusRabbitMQ",
+        "description": "React to grace-period, stock and payment events by sending commands."
+      }
+    ],
+    "relationships": [
+      {
+        "from": "customer",
+        "to": "webapp",
+        "description": "Shops and tracks orders using",
+        "technology": "HTTPS"
+      },
+      {
+        "from": "customer",
+        "to": "mobileapp",
+        "description": "Shops on a phone using"
+      },
+      {
+        "from": "customer",
+        "to": "identity",
+        "description": "Signs in with",
+        "technology": "HTTPS"
+      },
+      {
+        "from": "partner",
+        "to": "webhookclient",
+        "description": "Manages webhooks using",
+        "technology": "HTTPS"
+      },
+      {
+        "from": "webapp",
+        "to": "identity",
+        "description": "Authenticates customers with",
+        "technology": "OIDC"
+      },
+      {
+        "from": "webapp",
+        "to": "basket",
+        "description": "Reads and updates baskets with",
+        "technology": "gRPC"
+      },
+      {
+        "from": "webapp",
+        "to": "catalog",
+        "description": "Reads products and runs semantic search with",
+        "technology": "JSON/HTTP, API v2.0"
+      },
+      {
+        "from": "webapp",
+        "to": "ord_api",
+        "description": "Places and lists orders with",
+        "technology": "JSON/HTTP, API v1.0"
+      },
+      {
+        "from": "webapp",
+        "to": "eventbus",
+        "description": "Receives order status changes from",
+        "technology": "AMQP",
+        "async": true
+      },
+      {
+        "from": "webapp",
+        "to": "foundry",
+        "description": "Asks the shopping assistant chat model via",
+        "technology": "OpenAI API/HTTPS"
+      },
+      {
+        "from": "mobileapp",
+        "to": "bff",
+        "description": "Reads catalogue and orders through",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "mobileapp",
+        "to": "basket",
+        "description": "Reads and updates baskets with",
+        "technology": "gRPC"
+      },
+      {
+        "from": "bff",
+        "to": "catalog",
+        "description": "Forwards catalogue requests to",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "bff",
+        "to": "ord_api",
+        "description": "Forwards order requests to",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "bff",
+        "to": "identity",
+        "description": "Forwards sign-in requests to",
+        "technology": "HTTP"
+      },
+      {
+        "from": "identity",
+        "to": "identitydb",
+        "description": "Reads and writes users in",
+        "technology": "EF Core/Npgsql"
+      },
+      {
+        "from": "basket",
+        "to": "redis",
+        "description": "Reads and writes baskets in",
+        "technology": "RESP"
+      },
+      {
+        "from": "basket",
+        "to": "eventbus",
+        "description": "Consumes order-started events from",
+        "technology": "AMQP",
+        "async": true
+      },
+      {
+        "from": "basket",
+        "to": "identity",
+        "description": "Validates access tokens against",
+        "technology": "OIDC/HTTP"
+      },
+      {
+        "from": "catalog",
+        "to": "catalogdb",
+        "description": "Reads and writes products in",
+        "technology": "EF Core/Npgsql"
+      },
+      {
+        "from": "catalog",
+        "to": "eventbus",
+        "description": "Exchanges stock and price events via",
+        "technology": "AMQP",
+        "async": true
+      },
+      {
+        "from": "catalog",
+        "to": "foundry",
+        "description": "Creates embeddings with",
+        "technology": "OpenAI API/HTTPS"
+      },
+      {
+        "from": "orderproc",
+        "to": "orderingdb",
+        "description": "Finds orders past their grace period in",
+        "technology": "SQL/Npgsql"
+      },
+      {
+        "from": "orderproc",
+        "to": "eventbus",
+        "description": "Publishes grace-period-confirmed events to",
+        "technology": "AMQP",
+        "async": true
+      },
+      {
+        "from": "payproc",
+        "to": "eventbus",
+        "description": "Consumes stock-confirmed and publishes payment events via",
+        "technology": "AMQP",
+        "async": true
+      },
+      {
+        "from": "webhooks",
+        "to": "webhooksdb",
+        "description": "Reads and writes subscriptions in",
+        "technology": "EF Core/Npgsql"
+      },
+      {
+        "from": "webhooks",
+        "to": "eventbus",
+        "description": "Consumes paid, shipped and price events from",
+        "technology": "AMQP",
+        "async": true
+      },
+      {
+        "from": "webhooks",
+        "to": "webhookclient",
+        "description": "Posts webhook payloads to",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "webhooks",
+        "to": "identity",
+        "description": "Validates access tokens against",
+        "technology": "OIDC/HTTP"
+      },
+      {
+        "from": "webhookclient",
+        "to": "webhooks",
+        "description": "Manages subscriptions with",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "webhookclient",
+        "to": "identity",
+        "description": "Authenticates subscribers with",
+        "technology": "OIDC"
+      },
+      {
+        "from": "ord_api",
+        "to": "identity",
+        "description": "Validates access tokens against",
+        "technology": "OIDC/HTTP"
+      },
+      {
+        "from": "ord_api",
+        "to": "ord_commands",
+        "description": "Sends commands through",
+        "technology": "MediatR"
+      },
+      {
+        "from": "ord_api",
+        "to": "ord_queries",
+        "description": "Reads orders with"
+      },
+      {
+        "from": "ord_commands",
+        "to": "ord_domain",
+        "description": "Applies business rules with"
+      },
+      {
+        "from": "ord_commands",
+        "to": "ord_repos",
+        "description": "Loads and saves aggregates with"
+      },
+      {
+        "from": "ord_repos",
+        "to": "ord_domainhandlers",
+        "description": "Dispatches domain events to",
+        "technology": "MediatR"
+      },
+      {
+        "from": "ord_domainhandlers",
+        "to": "ord_outbox",
+        "description": "Records events with"
+      },
+      {
+        "from": "ord_domainhandlers",
+        "to": "ord_repos",
+        "description": "Loads and updates buyers and orders with"
+      },
+      {
+        "from": "ord_inthandlers",
+        "to": "ord_commands",
+        "description": "Sends status-change commands through",
+        "technology": "MediatR"
+      },
+      {
+        "from": "ord_queries",
+        "to": "orderingdb",
+        "description": "Queries orders in",
+        "technology": "EF Core/Npgsql"
+      },
+      {
+        "from": "ord_repos",
+        "to": "orderingdb",
+        "description": "Reads and writes orders and buyers in",
+        "technology": "EF Core/Npgsql"
+      },
+      {
+        "from": "ord_outbox",
+        "to": "orderingdb",
+        "description": "Stores and marks outbox events in",
+        "technology": "EF Core/Npgsql"
+      },
+      {
+        "from": "ord_outbox",
+        "to": "eventbus",
+        "description": "Publishes order status events to",
+        "technology": "AMQP",
+        "async": true
+      },
+      {
+        "from": "ord_inthandlers",
+        "to": "eventbus",
+        "description": "Consumes stock, payment and grace events from",
+        "technology": "AMQP",
+        "async": true
+      },
+      {
+        "from": "ord_commands",
+        "to": "ord_outbox",
+        "description": "Publishes the transaction's events after commit with"
+      }
+    ]
+  },
+  "views": [
+    {
+      "key": "context",
+      "type": "systemContext",
+      "scope": "eshop",
+      "description": "Who uses eShop and the optional AI model service it calls."
+    },
+    {
+      "key": "containers-web",
+      "type": "container",
+      "scope": "eshop",
+      "label": "Containers: web shop",
+      "description": "What the Blazor web shop calls while a customer shops. Sign-in, events and mobile access have their own views.",
+      "exclude": [
+        "partner",
+        "mobileapp",
+        "bff",
+        "identity",
+        "orderproc",
+        "payproc",
+        "webhooks",
+        "webhookclient",
+        "eventbus",
+        "identitydb",
+        "webhooksdb"
+      ],
+      "exclude_relationships": [
+        {
+          "from": "webapp",
+          "to": "eventbus"
+        }
+      ],
+      "placement": {
+        "customer": {
+          "row": 0,
+          "col": 1.5
+        },
+        "webapp": {
+          "row": 1,
+          "col": 1.5
+        },
+        "basket": {
+          "row": 2,
+          "col": 0.5
+        },
+        "ordering": {
+          "row": 2,
+          "col": 1.5
+        },
+        "catalog": {
+          "row": 2,
+          "col": 2.5
+        },
+        "foundry": {
+          "row": 1,
+          "col": 3.5
+        },
+        "redis": {
+          "row": 3,
+          "col": 0.5
+        },
+        "orderingdb": {
+          "row": 3,
+          "col": 1.5
+        },
+        "catalogdb": {
+          "row": 3,
+          "col": 2.5
+        }
+      },
+      "layout": {
+        "direction": "TB",
+        "element_width": 300,
+        "gap_x": 240,
+        "gap_y": 90
+      }
+    },
+    {
+      "key": "containers-mobile",
+      "type": "container",
+      "scope": "eshop",
+      "label": "Containers: mobile",
+      "description": "How the .NET MAUI app reaches the services: catalogue and orders through the YARP BFF, basket over gRPC.",
+      "exclude": [
+        "partner",
+        "foundry",
+        "webapp",
+        "identity",
+        "orderproc",
+        "payproc",
+        "webhooks",
+        "webhookclient",
+        "eventbus",
+        "redis",
+        "catalogdb",
+        "identitydb",
+        "orderingdb",
+        "webhooksdb"
+      ]
+    },
+    {
+      "key": "containers-orderflow",
+      "type": "container",
+      "scope": "eshop",
+      "label": "Containers: order flow",
+      "description": "How services drive the order lifecycle through RabbitMQ integration events (dashed = asynchronous).",
+      "exclude": [
+        "customer",
+        "partner",
+        "mobileapp",
+        "bff",
+        "identity",
+        "identitydb",
+        "redis",
+        "catalogdb",
+        "webhooksdb",
+        "webhookclient",
+        "foundry"
+      ],
+      "exclude_relationships": [
+        {
+          "from": "webapp",
+          "to": "basket"
+        },
+        {
+          "from": "webapp",
+          "to": "catalog"
+        },
+        {
+          "from": "webapp",
+          "to": "ordering"
+        }
+      ],
+      "placement": {
+        "webapp": {
+          "row": 0,
+          "col": 0
+        },
+        "basket": {
+          "row": 0,
+          "col": 1
+        },
+        "catalog": {
+          "row": 0,
+          "col": 2
+        },
+        "webhooks": {
+          "row": 0,
+          "col": 3
+        },
+        "eventbus": {
+          "row": 1,
+          "col": 1.5
+        },
+        "ordering": {
+          "row": 2,
+          "col": 0
+        },
+        "orderingdb": {
+          "row": 2,
+          "col": 1
+        },
+        "orderproc": {
+          "row": 2,
+          "col": 2
+        },
+        "payproc": {
+          "row": 2,
+          "col": 3
+        }
+      }
+    },
+    {
+      "key": "containers-webhooks",
+      "type": "container",
+      "scope": "eshop",
+      "label": "Containers: webhooks",
+      "description": "How partners subscribe to and receive order and price webhooks.",
+      "exclude": [
+        "customer",
+        "webapp",
+        "mobileapp",
+        "bff",
+        "basket",
+        "catalog",
+        "ordering",
+        "orderproc",
+        "payproc",
+        "redis",
+        "catalogdb",
+        "orderingdb",
+        "identitydb",
+        "foundry"
+      ],
+      "placement": {
+        "partner": {
+          "row": 0,
+          "col": 1
+        },
+        "identity": {
+          "row": 1,
+          "col": 0
+        },
+        "webhookclient": {
+          "row": 1,
+          "col": 1
+        },
+        "webhooksdb": {
+          "row": 2,
+          "col": 0
+        },
+        "webhooks": {
+          "row": 2,
+          "col": 1
+        },
+        "eventbus": {
+          "row": 2,
+          "col": 2
+        }
+      },
+      "layout": {
+        "direction": "TB",
+        "element_width": 300,
+        "gap_x": 240,
+        "gap_y": 90
+      }
+    },
+    {
+      "key": "containers-signin",
+      "type": "container",
+      "scope": "eshop",
+      "label": "Containers: sign-in",
+      "description": "Who signs in with the Identity API and which APIs validate its access tokens.",
+      "exclude": [
+        "catalog",
+        "orderproc",
+        "payproc",
+        "eventbus",
+        "redis",
+        "catalogdb",
+        "orderingdb",
+        "webhooksdb",
+        "foundry"
+      ],
+      "exclude_relationships": [
+        {
+          "from": "webapp",
+          "to": "basket"
+        },
+        {
+          "from": "webapp",
+          "to": "ordering"
+        },
+        {
+          "from": "bff",
+          "to": "ordering"
+        },
+        {
+          "from": "mobileapp",
+          "to": "basket"
+        },
+        {
+          "from": "webhooks",
+          "to": "webhookclient"
+        },
+        {
+          "from": "webhookclient",
+          "to": "webhooks"
+        }
+      ],
+      "placement": {
+        "customer": {
+          "row": 0,
+          "col": 1.5
+        },
+        "partner": {
+          "row": 0,
+          "col": 3
+        },
+        "mobileapp": {
+          "row": 1,
+          "col": 0
+        },
+        "webapp": {
+          "row": 1,
+          "col": 1
+        },
+        "webhookclient": {
+          "row": 1,
+          "col": 3
+        },
+        "bff": {
+          "row": 2,
+          "col": 0
+        },
+        "identity": {
+          "row": 2,
+          "col": 1.5
+        },
+        "identitydb": {
+          "row": 2,
+          "col": 3
+        },
+        "basket": {
+          "row": 3,
+          "col": 0
+        },
+        "ordering": {
+          "row": 3,
+          "col": 1
+        },
+        "webhooks": {
+          "row": 3,
+          "col": 2.5
+        }
+      },
+      "layout": {
+        "direction": "TB",
+        "element_width": 300,
+        "gap_x": 240,
+        "gap_y": 90
+      }
+    },
+    {
+      "key": "ordering-components",
+      "type": "component",
+      "scope": "ordering",
+      "label": "Ordering API components",
+      "description": "Inside the Ordering API: MediatR commands and queries, domain events and the transactional outbox. Token validation is in the sign-in view.",
+      "exclude": [
+        "identity"
+      ],
+      "exclude_relationships": [
+        {
+          "from": "webapp",
+          "to": "eventbus"
+        }
+      ],
+      "placement": {
+        "webapp": {
+          "row": 0,
+          "col": 1
+        },
+        "bff": {
+          "row": 0,
+          "col": 2
+        },
+        "ord_queries": {
+          "row": 1,
+          "col": 0
+        },
+        "ord_api": {
+          "row": 1,
+          "col": 1
+        },
+        "ord_commands": {
+          "row": 1,
+          "col": 2
+        },
+        "ord_inthandlers": {
+          "row": 1,
+          "col": 3
+        },
+        "eventbus": {
+          "row": 0,
+          "col": 4
+        },
+        "ord_domain": {
+          "row": 2,
+          "col": 1
+        },
+        "ord_repos": {
+          "row": 2,
+          "col": 2
+        },
+        "ord_domainhandlers": {
+          "row": 2,
+          "col": 3
+        },
+        "ord_outbox": {
+          "row": 2,
+          "col": 4
+        },
+        "orderingdb": {
+          "row": 3,
+          "col": 1
+        }
+      },
+      "layout": {
+        "direction": "TB",
+        "element_width": 300,
+        "gap_x": 240,
+        "gap_y": 100
+      }
+    }
+  ]
+}

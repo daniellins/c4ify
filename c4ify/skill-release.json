@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "skillId": "c4ify",
   "channel": "stable",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "source": {
     "repository": "https://github.com/daniellins/c4ify"
   },

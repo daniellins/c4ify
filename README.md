@@ -31,8 +31,24 @@ together so you can drill from the landscape down to components.
 > model. For free-form architecture, sequence or data-flow diagrams use Archify; for business
 > diagrams (WBS, BPMN, VSM, …) use bizify. See [Origin and credits](#origin-and-credits).
 
-Screenshots will be added with the first release. Meanwhile, `node bin/c4ify.mjs demo` renders the
-bundled examples locally.
+## Gallery
+
+Real systems, modelled by an agent with c4ify from their public repositories
+(sources in [examples/README.md](c4ify/examples/README.md)). Every view passes
+`--quality showcase` and fits a 1440×900 screen.
+
+| | |
+|---|---|
+| ![eShop system context](docs/images/eshop-context.png) | ![eShop order flow, dark theme](docs/images/eshop-containers-orderflow.png) |
+| **eShop**: system context | **eShop**: containers, order flow (dark theme) |
+| ![eShop Ordering API components](docs/images/eshop-ordering-components.png) | ![Online Boutique checkout](docs/images/online-boutique-containers-checkout.png) |
+| **eShop**: components of the Ordering API | **Online Boutique**: containers, checkout flow |
+| ![Spring PetClinic containers in Portuguese](docs/images/spring-petclinic-conteineres-aplicacao.png) | ![Online store containers, dark theme](docs/images/online-store-conteineres.png) |
+| **Spring PetClinic Microservices** (pt-BR): containers | **Loja On-line** (pt-BR, fictional): containers |
+
+Each model is one JSON file in [`c4ify/examples/`](c4ify/examples/); deliver any of them with
+`node bin/c4ify.mjs deliver c4 examples/<model>.c4.json <dir>` and double-click an element marked
+⊕ to open the next level.
 
 ## Why c4ify
 
@@ -173,6 +189,7 @@ A minimal model with two views:
 | Command | Does |
 |---|---|
 | `validate c4 <model> [--view key] [--quality standard\|showcase] [--json]` | Schema, rules and composition gates for every view (or one) |
+| `draft c4 <model> <dir> [--view key] [--png] [--json]` | Renders even when layout gates fail: problems outlined in red and listed, optional quick screenshot |
 | `deliver c4 <model> <output-dir>` | Atomic delivery of every view as `<view-key>.html`, with SHA-256 receipts |
 | `deliver c4 <model> <out.html> --view key` | One view into one file |
 | `preview c4 <model> [out.html] [--view key]` | Last-good live preview while editing |
