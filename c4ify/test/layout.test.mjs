@@ -79,6 +79,34 @@ test('a shared-services hub drops below the services its caller also uses', () =
   assert.ok(cells.get('web').row < cells.get('cart').row);
 });
 
+test('overlapping shared-service hubs give the same rows whatever the authored order', () => {
+  const elements = [
+    { id: 'user', type: 'person', name: 'User' },
+    { id: 's', type: 'softwareSystem', name: 'S' },
+    ...['web', 'checkout', 'admin', 'cart', 'catalog', 'stock', 'pay', 'audit'].map((id) => ({ id, type: 'container', parent: 's', name: id })),
+  ];
+  const calls = (from, targets) => targets.map((to) => ({ from, to, description: 'Calls' }));
+  const relationships = [
+    { from: 'user', to: 'web', description: 'Uses' },
+    ...calls('web', ['cart', 'catalog', 'stock', 'checkout', 'admin']),
+    ...calls('checkout', ['cart', 'catalog', 'pay']),
+    ...calls('admin', ['catalog', 'stock', 'audit', 'cart']),
+  ];
+  const rowsFor = (order) => {
+    const local = indexModel({ elements: order, relationships });
+    const view = { key: 'c', type: 'container', scope: 's' };
+    const { cells } = assignRows(view, resolveView(local, view), 8);
+    return Object.fromEntries([...cells].map(([id, cell]) => [id, cell.row]));
+  };
+  const forward = rowsFor(elements);
+  const backward = rowsFor([...elements].reverse());
+  assert.deepEqual(forward, backward);
+  // The inverted hub sits below its shared services; the caller sits above them.
+  const inverted = ['checkout', 'admin'].filter((hub) => forward[hub] > forward.catalog);
+  assert.equal(inverted.length, 1);
+  assert.ok(forward.web < forward.catalog);
+});
+
 test('long single words wrap at camelCase or separators instead of failing', () => {
   const wrapped = wrapText('productcatalogservice-v2 shoppingCartRepository', 12, 4);
   assert.equal(wrapped.overflow, false);

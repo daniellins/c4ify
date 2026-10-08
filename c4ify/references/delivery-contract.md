@@ -3,16 +3,20 @@
 ## Draft while repairing
 
 ```bash
-node bin/c4ify.mjs draft c4 <model.json> <draft-dir> [--view <key>] [--quality standard|showcase] --json
+node bin/c4ify.mjs draft c4 <model.json> <draft-dir> [--view <key>] [--png] [--quality standard|showcase] --json
 ```
 
 Renders every view (or one) even when layout gates fail, so the author can see
 the layout. HARD model rules still stop a view. Each failing element and arrow
 is outlined in red and every problem is listed above the diagram. The receipt is
-`{ schemaVersion, ok, command: "draft", quality, directory, views: [{ view, ok,
-rendered, output, layout: { direction, maxPerRow, elementWidth, gapBoost },
-ratio, problems }] }`; `ok` is true only when no view has a problem. A draft is
-not a delivery: nothing is verified or committed atomically.
+`{ schemaVersion, ok, command: "draft", quality, directory, views: [...] }`, where each
+rendered view is `{ view, ok, rendered: true, output, layout: { direction, maxPerRow,
+elementWidth, gapBoost }, ratio, problems }` plus, with `--png`, `screenshot` (path of a
+1440×900 light capture) and `fitsScreen` (false when the page scrolls), or
+`screenshotError` when Chrome could not capture. A view stopped by a HARD rule is
+`{ view, ok: false, rendered: false, error, diagnostics }`. `ok` is true only when no
+view has a problem. A draft is not a delivery: nothing is verified or committed
+atomically.
 
 ## Validate and deliver
 

@@ -108,16 +108,55 @@ function pushRow(rows, elements) {
 
 // Longest-path layering over in-scope edges (cycles broken by authored order),
 // with stores pinned to the last layer.
+// Edges that close a cycle (depth-first, roots and neighbours visited in id
+// order so the choice is stable for a given model).
+function cycleClosingEdges(core, inner) {
+  const outgoing = new Map(core.map((element) => [element.id, []]));
+  for (const edge of inner) outgoing.get(edge.from).push(edge);
+  for (const list of outgoing.values()) list.sort((left, right) => left.to.localeCompare(right.to));
+  const state = new Map();
+  const closing = new Set();
+  const visit = (id) => {
+    state.set(id, 'open');
+    for (const edge of outgoing.get(id)) {
+      const next = state.get(edge.to);
+      if (next === 'open') closing.add(edge);
+      else if (!next) visit(edge.to);
+    }
+    state.set(id, 'done');
+  };
+  for (const id of [...outgoing.keys()].sort()) if (!state.has(id)) visit(id);
+  return closing;
+}
+
+// Sibling calls: when a calls b and c, and b also calls c, longest-path
+// layering puts c a row below b, so a's arrow to c must cross b's row. Keep c
+// in b's row instead (the row-adjacency pass then puts them side by side).
+function liftSiblingCalls(inner, rank, cyclic) {
+  for (const edge of inner) {
+    if (cyclic.has(edge)) continue;
+    const { from: b, to: c } = edge;
+    if (rank.get(c) !== rank.get(b) + 1) continue;
+    const sharedCaller = inner.some((first) => first.to === b && !cyclic.has(first)
+      && rank.get(first.from) === rank.get(b) - 1
+      && inner.some((second) => second.from === first.from && second.to === c));
+    // Only when nothing else forces c down (no other caller one row above it).
+    const pinned = inner.some((other) => other.to === c && other.from !== b && !cyclic.has(other) && rank.get(other.from) === rank.get(c) - 1
+      && !inner.some((link) => link.from === other.from && link.to === b));
+    if (sharedCaller && !pinned) rank.set(c, rank.get(b));
+  }
+}
+
 function rankCore(core, edges, coreIds) {
   const inner = edges.filter((edge) => coreIds.has(edge.from) && coreIds.has(edge.to));
   const rank = new Map(core.map((element) => [element.id, 0]));
-  const position = new Map(core.map((element, index) => [element.id, index]));
+  const cyclic = cycleClosingEdges(core, inner);
   for (let pass = 0; pass < core.length; pass += 1) {
     let changed = false;
     for (const edge of inner) {
-      // Back edges (to an element authored earlier and already ranked above)
-      // do not push ranks, so cycles terminate.
-      if (position.get(edge.to) < position.get(edge.from) && rank.get(edge.to) <= rank.get(edge.from)) continue;
+      // Only an edge that closes a real cycle is ignored, so ranks of an
+      // acyclic graph never depend on the order elements were authored.
+      if (cyclic.has(edge)) continue;
       const next = rank.get(edge.from) + 1;
       if (next > rank.get(edge.to)) {
         rank.set(edge.to, next);
@@ -126,6 +165,7 @@ function rankCore(core, edges, coreIds) {
     }
     if (!changed) break;
   }
+  liftSiblingCalls(inner, rank, cyclic);
   // Elements nothing calls (workers, schedulers) are peers of the services
   // they feed: same row, beside them, never stacked above them where their
   // outbound arrows would have to cross the service.
@@ -162,21 +202,31 @@ function rankCore(core, edges, coreIds) {
 // the hub's private callees sit under the hub.
 const SANDWICH_MIN_SHARED = 2;
 const SANDWICH_MIN_FANOUT = 3;
+// Candidates are found on a snapshot of the ranks, then applied only when
+// they touch disjoint elements, largest fan-out first (ties by id), so one hub
+// never undoes another and the result does not depend on authored order.
 function invertSharedHubs(core, edges, inner, infra, rank) {
   const coreIds = new Set(core.map((element) => element.id));
+  const snapshot = new Map(rank);
+  const candidates = [];
   for (const hub of core) {
     if (infra.has(hub.id)) continue;
-    const callees = inner.filter((edge) => edge.from === hub.id && !infra.has(edge.to)).map((edge) => edge.to);
+    const callees = [...new Set(inner.filter((edge) => edge.from === hub.id && !infra.has(edge.to)).map((edge) => edge.to))];
     if (callees.length < SANDWICH_MIN_FANOUT) continue;
     const callers = new Set(edges.filter((edge) => edge.to === hub.id).map((edge) => edge.from));
     const shared = callees.filter((id) => edges.some((edge) => edge.to === id && edge.from !== hub.id && callers.has(edge.from)));
     if (shared.length < SANDWICH_MIN_SHARED) continue;
-    const level = rank.get(hub.id);
-    for (const id of shared) rank.set(id, level);
-    rank.set(hub.id, level + 1);
-    for (const id of callees) {
-      if (!shared.includes(id) && coreIds.has(id)) rank.set(id, Math.max(rank.get(id), level + 1));
-    }
+    candidates.push({ hub: hub.id, level: snapshot.get(hub.id), shared, own: callees.filter((id) => !shared.includes(id) && coreIds.has(id)) });
+  }
+  candidates.sort((left, right) => (right.shared.length + right.own.length) - (left.shared.length + left.own.length) || left.hub.localeCompare(right.hub));
+  const touched = new Set();
+  for (const candidate of candidates) {
+    const members = [candidate.hub, ...candidate.shared, ...candidate.own];
+    if (members.some((id) => touched.has(id))) continue;
+    members.forEach((id) => touched.add(id));
+    for (const id of candidate.shared) rank.set(id, candidate.level);
+    rank.set(candidate.hub, candidate.level + 1);
+    for (const id of candidate.own) rank.set(id, Math.max(snapshot.get(id), candidate.level + 1));
   }
 }
 
