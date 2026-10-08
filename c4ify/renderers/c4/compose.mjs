@@ -46,7 +46,8 @@ function relationsFor(view, resolved) {
       from: relationship.from,
       to: relationship.to,
       label: relationship.description,
-      description: relationship.description,
+      // "+N": this arrow also stands for N other relationships of the model.
+      description: relationship.count > 1 ? `${relationship.description} (+${relationship.count - 1})` : relationship.description,
       technology: relationship.technology,
       variant: relationship.async ? 'dashed' : 'default',
       count: relationship.count,
@@ -81,7 +82,9 @@ export function compositionProblems(layout, { viewIndex, profile }) {
     ...cleanRouteRhythmProblems(common),
   ];
   for (const failure of failures) {
-    const where = failure.fits ? 'has no free spot clear of elements, other labels and routes' : `does not fit its ${Math.round(segmentLength(failure.segment))}px segment`;
+    const where = failure.fits
+      ? 'has no free spot clear of elements, other labels and routes'
+      : failure.segment ? `does not fit its ${Math.round(segmentLength(failure.segment))}px segment` : 'does not fit at its labelAt point';
     problems.push(`The label "${failure.relation.description}" (${failure.relation.from} → ${failure.relation.to}) ${where}; set labelAt or labelDx/labelDy for this pair in views[${viewIndex}].routes, raise layout.gap_x/gap_y, or move an element with placement.`);
   }
   const labelRects = relations.map((relation, relationIndex) => ({ relation, relationIndex, label: relation.label, ...labels.get(relation) }));
@@ -118,6 +121,10 @@ function* candidates(view, resolved) {
 function fitOf(scene, target) {
   const ratio = scene.viewW / scene.viewH;
   return { ratio, fits: ratio >= target };
+}
+
+export function targetFor(view, viewCount, cardCount) {
+  return view.layout?.fit === 'scroll' ? 0 : fitTarget(viewCount, cardCount);
 }
 
 // context: { view, viewIndex, resolved, t, typeName, glossaryEntries, profile, target }

@@ -1,6 +1,6 @@
 {
   "name": "c4ify",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "C4 model diagrams (system landscape, context, container, component) from one JSON model with many views, rendered as explorable standalone HTML; forked from bizify, a fork of Archify 2.17.0-dev.1.",

@@ -66,11 +66,13 @@ value (C4 calls it optional). When the request is ambiguous, run
    layout gates fail, outlines each problem in red and lists them all at once:
 
    ```bash
-   node bin/c4ify.mjs draft c4 <model.json> <draft-dir> --json
+   node bin/c4ify.mjs draft c4 <model.json> <draft-dir> --png --json
    ```
 
-   The receipt gives, per view, the layout the renderer chose (orientation,
-   elements per row, box width, extra spacing, aspect) and every problem.
+   `--png` adds a quick 1440×900 screenshot per view (seconds, not minutes):
+   look at it. The receipt gives, per view, the layout the renderer chose
+   (orientation, elements per row, box width, extra spacing, aspect), whether
+   it scrolls, and every problem, notation findings included.
    HARD findings `[R-C4-…]` stop the draft: the model is wrong, fix the facts.
    For layout problems, in this order:
    - **Shared infrastructure** (config, discovery, tracing, logging reached by
@@ -78,7 +80,8 @@ value (C4 calls it optional). When the request is ambiguous, run
      `exclude_relationships: [{ "from": "*", "to": "<id>" }]` and say so in the
      view description, or give them their own view.
    - **Too many elements or arrows for one picture**: split the view (one per
-     flow or subsystem) and give each a nav `label`.
+     flow or subsystem) and give each a nav `label`; or, when the reader needs
+     the whole picture, keep it and set `layout.fit: "scroll"`.
    - **One element in the way**: `placement: { "<id>": { "row": r, "col": c } }`.
      Rows and columns are visual: row 0 is the top row (people), col 0 the
      leftmost; `.5` centres between two columns. The same cells apply in both

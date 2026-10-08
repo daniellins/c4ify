@@ -76,7 +76,11 @@ export function wrapText(text, units, maxLines) {
 
 function measureBox(element, { fonts, elementWidth, typeName, t }) {
   const units = (font) => Math.max(6, Math.floor((elementWidth - 18) / (font * 0.62)));
-  const name = wrapText(element.name, units(fonts.name), 2);
+  // A name with one long word ("productcatalogservice") gets a smaller font,
+  // down to the detail size, before the word is cut.
+  const longest = Math.max(...String(element.name).split(/\s+/).map((word) => textUnits(word)));
+  const nameFont = Math.max(fonts.detail, Math.min(fonts.name, (elementWidth - 18) / (0.62 * longest)));
+  const name = wrapText(element.name, units(nameFont), 2);
   const typeText = element.technology
     ? t('c4.type.withTech', { type: typeName(element), technology: element.technology })
     : t('c4.type.plain', { type: typeName(element) });
@@ -87,13 +91,14 @@ function measureBox(element, { fonts, elementWidth, typeName, t }) {
     .map(([field, , limit]) => ({ field, limit }));
   const glyph = element.type === 'person' ? 18 : 0;
   const cap = element.shape === 'database' || isStore(element) ? 12 : 0;
-  const contentH = 14 + glyph + cap + name.lines.length * fonts.name * 1.22 + 5 + typeLines.lines.length * fonts.detail * 1.25
+  const contentH = 14 + glyph + cap + name.lines.length * nameFont * 1.22 + 5 + typeLines.lines.length * fonts.detail * 1.25
     + (description.lines.length ? 7 + description.lines.length * fonts.detail * 1.3 : 0) + 12;
   return {
     id: element.id,
     element,
     kind: kindOf(element),
     nameLines: name.lines,
+    nameFont: round(nameFont),
     typeLines: typeLines.lines,
     descriptionLines: description.lines,
     glyph,

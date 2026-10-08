@@ -1,0 +1,759 @@
+{
+  "schema_version": 1,
+  "diagram_type": "c4",
+  "meta": {
+    "title": "Spring PetClinic Microservices",
+    "subtitle": "Modelo C4 extraído do código: contexto e contêineres da aplicação de clínica veterinária.",
+    "locale": "pt-BR",
+    "quality_profile": "showcase",
+    "glossary": {
+      "API": "Interface de programação de aplicações (Application Programming Interface)",
+      "HTTP": "Protocolo de transferência de hipertexto (Hypertext Transfer Protocol)",
+      "HTTPS": "HTTP protegido por TLS",
+      "JSON": "Formato de troca de dados em texto (JavaScript Object Notation)",
+      "JDBC": "API Java de acesso a bancos relacionais (Java Database Connectivity)",
+      "JPA": "Padrão Java de mapeamento objeto-relacional (Jakarta Persistence API)",
+      "MVC": "Padrão Model-View-Controller, aqui o Spring Web MVC",
+      "HSQLDB": "Banco relacional Java executado em memória (HyperSQL Database)",
+      "LLM": "Modelo de linguagem de grande porte (Large Language Model)",
+      "Spring AI": "Projeto Spring para integrar modelos de IA e chamadas de ferramentas",
+      "Eureka": "Registro de serviços do Spring Cloud Netflix",
+      "Zipkin": "Servidor de rastreamento distribuído",
+      "Resilience4j": "Biblioteca de circuit breaker e retentativas",
+      "WebFlux": "Pilha web reativa do Spring",
+      "Git": "Sistema de controle de versão"
+    }
+  },
+  "model": {
+    "elements": [
+      {
+        "id": "funcionario",
+        "type": "person",
+        "name": "Funcionário da Clínica",
+        "description": "Cadastra tutores, pets e visitas, consulta veterinários e usa o assistente."
+      },
+      {
+        "id": "operacoes",
+        "type": "person",
+        "name": "Equipe de Operações",
+        "description": "Acompanha saúde, métricas e rastreamentos dos microsserviços."
+      },
+      {
+        "id": "petclinic",
+        "type": "softwareSystem",
+        "name": "Spring PetClinic",
+        "description": "Gerencia tutores, pets, visitas e veterinários de uma clínica, com assistente de IA."
+      },
+      {
+        "id": "frontend",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Aplicação Web",
+        "technology": "Vue.js, Vue Router, Bootstrap",
+        "description": "Interface no navegador, servida pelo API Gateway."
+      },
+      {
+        "id": "gateway",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "API Gateway",
+        "technology": "Spring Cloud Gateway",
+        "description": "Roteia /api/*, agrega tutor e visitas; circuit breaker Resilience4j."
+      },
+      {
+        "id": "customers",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Customers Service",
+        "technology": "Spring Boot, Spring Data JPA",
+        "description": "Mantém tutores, pets e tipos de pet."
+      },
+      {
+        "id": "vets",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Vets Service",
+        "technology": "Spring Boot, JPA, Caffeine",
+        "description": "Disponibiliza veterinários e especialidades, com cache."
+      },
+      {
+        "id": "visits",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Visits Service",
+        "technology": "Spring Boot, Spring Data JPA",
+        "description": "Registra e consulta as visitas dos pets."
+      },
+      {
+        "id": "genai",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "GenAI Service",
+        "technology": "Spring Boot, Spring AI",
+        "description": "Assistente de chat que responde e age via ferramentas; índice vetorial em memória."
+      },
+      {
+        "id": "db_customers",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Banco de Clientes",
+        "technology": "HSQLDB (padrão) ou MySQL",
+        "shape": "database",
+        "description": "Guarda tutores, pets e tipos de pet; em memória por padrão."
+      },
+      {
+        "id": "db_vets",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Banco de Veterinários",
+        "technology": "HSQLDB (padrão) ou MySQL",
+        "shape": "database",
+        "description": "Guarda veterinários e especialidades; em memória por padrão."
+      },
+      {
+        "id": "db_visits",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Banco de Visitas",
+        "technology": "HSQLDB (padrão) ou MySQL",
+        "shape": "database",
+        "description": "Guarda as visitas dos pets; em memória por padrão."
+      },
+      {
+        "id": "config",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Config Server",
+        "technology": "Spring Cloud Config Server",
+        "description": "Centraliza a configuração de todos os serviços."
+      },
+      {
+        "id": "discovery",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Discovery Server",
+        "technology": "Spring Cloud Netflix Eureka",
+        "description": "Registro de serviços usado no balanceamento de carga (lb://)."
+      },
+      {
+        "id": "admin",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Admin Server",
+        "technology": "Spring Boot Admin",
+        "description": "Painel de saúde e detalhes das instâncias registradas."
+      },
+      {
+        "id": "tracing",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Tracing Server",
+        "technology": "Zipkin",
+        "description": "Recebe e exibe os rastreamentos distribuídos das requisições."
+      },
+      {
+        "id": "prometheus",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Prometheus",
+        "technology": "Prometheus",
+        "description": "Coleta e armazena métricas dos serviços a cada 15 segundos."
+      },
+      {
+        "id": "grafana",
+        "type": "container",
+        "parent": "petclinic",
+        "name": "Grafana",
+        "technology": "Grafana",
+        "description": "Exibe o painel Spring Petclinic Metrics a partir do Prometheus."
+      },
+      {
+        "id": "llm",
+        "type": "softwareSystem",
+        "external": true,
+        "name": "Provedor de LLM",
+        "description": "OpenAI (padrão, gpt-4o-mini) ou Azure OpenAI; gera as respostas do chat."
+      },
+      {
+        "id": "configrepo",
+        "type": "softwareSystem",
+        "external": true,
+        "name": "Repositório de Configuração",
+        "description": "Repositório Git no GitHub com os arquivos de configuração dos serviços."
+      }
+    ],
+    "relationships": [
+      {
+        "from": "funcionario",
+        "to": "frontend",
+        "description": "Atende a clínica usando",
+        "technology": "Navegador web"
+      },
+      {
+        "from": "frontend",
+        "to": "gateway",
+        "description": "Envia as chamadas /api/* para",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "gateway",
+        "to": "customers",
+        "description": "Roteia /api/customer para",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "gateway",
+        "to": "vets",
+        "description": "Roteia /api/vet para",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "gateway",
+        "to": "visits",
+        "description": "Roteia /api/visit para",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "gateway",
+        "to": "genai",
+        "description": "Roteia o chat (/api/genai) para",
+        "technology": "HTTP"
+      },
+      {
+        "from": "genai",
+        "to": "customers",
+        "description": "Gerencia tutores e pets via",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "genai",
+        "to": "vets",
+        "description": "Indexa veterinários, se faltar o vectorstore.json, a partir de",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "genai",
+        "to": "llm",
+        "description": "Envia prompts para",
+        "technology": "JSON/HTTPS"
+      },
+      {
+        "from": "customers",
+        "to": "db_customers",
+        "description": "Lê e grava tutores e pets em",
+        "technology": "JDBC"
+      },
+      {
+        "from": "vets",
+        "to": "db_vets",
+        "description": "Lê veterinários de",
+        "technology": "JDBC"
+      },
+      {
+        "from": "visits",
+        "to": "db_visits",
+        "description": "Lê e grava visitas em",
+        "technology": "JDBC"
+      },
+      {
+        "from": "gateway",
+        "to": "config",
+        "description": "Carrega a configuração de",
+        "technology": "HTTP"
+      },
+      {
+        "from": "customers",
+        "to": "config",
+        "description": "Carrega a configuração de",
+        "technology": "HTTP"
+      },
+      {
+        "from": "vets",
+        "to": "config",
+        "description": "Carrega a configuração de",
+        "technology": "HTTP"
+      },
+      {
+        "from": "visits",
+        "to": "config",
+        "description": "Carrega a configuração de",
+        "technology": "HTTP"
+      },
+      {
+        "from": "genai",
+        "to": "config",
+        "description": "Carrega a configuração de",
+        "technology": "HTTP"
+      },
+      {
+        "from": "admin",
+        "to": "config",
+        "description": "Carrega a configuração de",
+        "technology": "HTTP"
+      },
+      {
+        "from": "discovery",
+        "to": "config",
+        "description": "Carrega a configuração de",
+        "technology": "HTTP"
+      },
+      {
+        "from": "config",
+        "to": "configrepo",
+        "description": "Lê os arquivos de configuração de",
+        "technology": "Git/HTTPS"
+      },
+      {
+        "from": "gateway",
+        "to": "discovery",
+        "description": "Registra-se e localiza serviços em",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "customers",
+        "to": "discovery",
+        "description": "Registra-se em",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "vets",
+        "to": "discovery",
+        "description": "Registra-se em",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "visits",
+        "to": "discovery",
+        "description": "Registra-se em",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "genai",
+        "to": "discovery",
+        "description": "Registra-se e localiza serviços em",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "admin",
+        "to": "discovery",
+        "description": "Descobre as instâncias a monitorar em",
+        "technology": "JSON/HTTP"
+      },
+      {
+        "from": "gateway",
+        "to": "tracing",
+        "description": "Envia spans de rastreamento para",
+        "technology": "HTTP"
+      },
+      {
+        "from": "customers",
+        "to": "tracing",
+        "description": "Envia spans de rastreamento para",
+        "technology": "HTTP"
+      },
+      {
+        "from": "vets",
+        "to": "tracing",
+        "description": "Envia spans de rastreamento para",
+        "technology": "HTTP"
+      },
+      {
+        "from": "visits",
+        "to": "tracing",
+        "description": "Envia spans de rastreamento para",
+        "technology": "HTTP"
+      },
+      {
+        "from": "genai",
+        "to": "tracing",
+        "description": "Envia spans de rastreamento para",
+        "technology": "HTTP"
+      },
+      {
+        "from": "prometheus",
+        "to": "gateway",
+        "description": "Coleta métricas de /actuator/prometheus em",
+        "technology": "HTTP"
+      },
+      {
+        "from": "prometheus",
+        "to": "customers",
+        "description": "Coleta métricas de /actuator/prometheus em",
+        "technology": "HTTP"
+      },
+      {
+        "from": "prometheus",
+        "to": "vets",
+        "description": "Coleta métricas de /actuator/prometheus em",
+        "technology": "HTTP"
+      },
+      {
+        "from": "prometheus",
+        "to": "visits",
+        "description": "Coleta métricas de /actuator/prometheus em",
+        "technology": "HTTP"
+      },
+      {
+        "from": "grafana",
+        "to": "prometheus",
+        "description": "Consulta métricas em",
+        "technology": "HTTP"
+      },
+      {
+        "from": "operacoes",
+        "to": "grafana",
+        "description": "Acompanha painéis de métricas em",
+        "technology": "Navegador web"
+      },
+      {
+        "from": "operacoes",
+        "to": "admin",
+        "description": "Verifica a saúde das instâncias em",
+        "technology": "Navegador web"
+      },
+      {
+        "from": "operacoes",
+        "to": "tracing",
+        "description": "Investiga rastreamentos em",
+        "technology": "Navegador web"
+      }
+    ]
+  },
+  "views": [
+    {
+      "key": "contexto",
+      "type": "systemContext",
+      "scope": "petclinic",
+      "label": "Contexto",
+      "description": "O Spring PetClinic no centro, com quem o usa e os sistemas externos dos quais depende."
+    },
+    {
+      "key": "conteineres-aplicacao",
+      "type": "container",
+      "scope": "petclinic",
+      "label": "Aplicação",
+      "description": "Fluxo de negócio do navegador aos bancos e ao LLM. Oculto aqui: sem o vectorstore.json, o GenAI Service lê veterinários do Vets Service. Infraestrutura nas outras visões.",
+      "exclude": [
+        "config",
+        "discovery",
+        "admin",
+        "tracing",
+        "prometheus",
+        "grafana",
+        "operacoes",
+        "configrepo"
+      ],
+      "placement": {
+        "funcionario": {
+          "row": 0,
+          "col": 0
+        },
+        "frontend": {
+          "row": 1,
+          "col": 0
+        },
+        "gateway": {
+          "row": 1,
+          "col": 1.5
+        },
+        "visits": {
+          "row": 2,
+          "col": 0
+        },
+        "vets": {
+          "row": 2,
+          "col": 1.5
+        },
+        "customers": {
+          "row": 2,
+          "col": 3
+        },
+        "genai": {
+          "row": 2,
+          "col": 4.5
+        },
+        "llm": {
+          "row": 2,
+          "col": 6
+        },
+        "db_visits": {
+          "row": 3,
+          "col": 0
+        },
+        "db_vets": {
+          "row": 3,
+          "col": 1.5
+        },
+        "db_customers": {
+          "row": 3,
+          "col": 3
+        }
+      },
+      "layout": {
+        "direction": "TB"
+      },
+      "exclude_relationships": [
+        {
+          "from": "genai",
+          "to": "vets"
+        }
+      ],
+      "routes": [
+        {
+          "from": "gateway",
+          "to": "visits",
+          "fromSide": "left",
+          "toSide": "top"
+        },
+        {
+          "from": "gateway",
+          "to": "vets",
+          "fromSide": "bottom",
+          "toSide": "top"
+        },
+        {
+          "from": "gateway",
+          "to": "customers",
+          "fromSide": "right",
+          "toSide": "top"
+        }
+      ],
+      "title": "Diagrama de contêineres de Spring PetClinic: aplicação"
+    },
+    {
+      "key": "conteineres-configuracao",
+      "type": "container",
+      "scope": "petclinic",
+      "label": "Configuração e descoberta",
+      "description": "Cada serviço carrega a configuração do Config Server e se registra no Eureka. Oculto aqui: o Discovery Server também carrega a configuração do Config Server.",
+      "exclude": [
+        "frontend",
+        "db_customers",
+        "db_vets",
+        "db_visits",
+        "tracing",
+        "prometheus",
+        "grafana",
+        "operacoes",
+        "funcionario",
+        "llm"
+      ],
+      "exclude_relationships": [
+        {
+          "from": "gateway",
+          "to": "customers"
+        },
+        {
+          "from": "gateway",
+          "to": "vets"
+        },
+        {
+          "from": "gateway",
+          "to": "visits"
+        },
+        {
+          "from": "gateway",
+          "to": "genai"
+        },
+        {
+          "from": "genai",
+          "to": "customers"
+        },
+        {
+          "from": "genai",
+          "to": "vets"
+        },
+        {
+          "from": "discovery",
+          "to": "config"
+        }
+      ],
+      "placement": {
+        "configrepo": {
+          "row": 0,
+          "col": 2.5
+        },
+        "config": {
+          "row": 1,
+          "col": 2.5
+        },
+        "gateway": {
+          "row": 2,
+          "col": 0
+        },
+        "customers": {
+          "row": 2,
+          "col": 1
+        },
+        "vets": {
+          "row": 2,
+          "col": 2
+        },
+        "visits": {
+          "row": 2,
+          "col": 3
+        },
+        "genai": {
+          "row": 2,
+          "col": 4
+        },
+        "admin": {
+          "row": 2,
+          "col": 5
+        },
+        "discovery": {
+          "row": 3,
+          "col": 2.5
+        }
+      },
+      "title": "Diagrama de contêineres de Spring PetClinic: configuração e descoberta"
+    },
+    {
+      "key": "conteineres-metricas",
+      "type": "container",
+      "scope": "petclinic",
+      "label": "Métricas",
+      "description": "O Prometheus coleta as métricas do Actuator dos serviços e o Grafana as exibe. Chamadas de negócio entre serviços ocultas nesta visão.",
+      "exclude": [
+        "frontend",
+        "db_customers",
+        "db_vets",
+        "db_visits",
+        "config",
+        "discovery",
+        "funcionario",
+        "llm",
+        "configrepo",
+        "admin",
+        "tracing",
+        "genai"
+      ],
+      "exclude_relationships": [
+        {
+          "from": "gateway",
+          "to": "customers"
+        },
+        {
+          "from": "gateway",
+          "to": "vets"
+        },
+        {
+          "from": "gateway",
+          "to": "visits"
+        }
+      ],
+      "placement": {
+        "operacoes": {
+          "row": 0,
+          "col": 0
+        },
+        "grafana": {
+          "row": 1,
+          "col": 0
+        },
+        "prometheus": {
+          "row": 1,
+          "col": 1.5
+        },
+        "gateway": {
+          "row": 2,
+          "col": 0
+        },
+        "customers": {
+          "row": 2,
+          "col": 1
+        },
+        "vets": {
+          "row": 2,
+          "col": 2
+        },
+        "visits": {
+          "row": 2,
+          "col": 3
+        }
+      },
+      "title": "Diagrama de contêineres de Spring PetClinic: métricas"
+    },
+    {
+      "key": "conteineres-rastreamento",
+      "type": "container",
+      "scope": "petclinic",
+      "label": "Rastreamento e saúde",
+      "description": "Os serviços enviam spans ao Zipkin; o Spring Boot Admin mostra a saúde das instâncias que descobre no Eureka. Chamadas de negócio ocultas nesta visão.",
+      "exclude": [
+        "frontend",
+        "db_customers",
+        "db_vets",
+        "db_visits",
+        "config",
+        "discovery",
+        "funcionario",
+        "llm",
+        "configrepo",
+        "prometheus",
+        "grafana"
+      ],
+      "exclude_relationships": [
+        {
+          "from": "gateway",
+          "to": "customers"
+        },
+        {
+          "from": "gateway",
+          "to": "vets"
+        },
+        {
+          "from": "gateway",
+          "to": "visits"
+        },
+        {
+          "from": "gateway",
+          "to": "genai"
+        },
+        {
+          "from": "genai",
+          "to": "customers"
+        },
+        {
+          "from": "genai",
+          "to": "vets"
+        }
+      ],
+      "placement": {
+        "operacoes": {
+          "row": 0,
+          "col": 3
+        },
+        "tracing": {
+          "row": 1,
+          "col": 2
+        },
+        "admin": {
+          "row": 1,
+          "col": 4
+        },
+        "gateway": {
+          "row": 2,
+          "col": 0
+        },
+        "customers": {
+          "row": 2,
+          "col": 1
+        },
+        "vets": {
+          "row": 2,
+          "col": 2
+        },
+        "visits": {
+          "row": 2,
+          "col": 3
+        },
+        "genai": {
+          "row": 2,
+          "col": 4
+        }
+      },
+      "title": "Diagrama de contêineres de Spring PetClinic: rastreamento e saúde"
+    }
+  ]
+}

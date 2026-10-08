@@ -13,7 +13,7 @@ import { translateMessage } from '../shared/i18n.mjs';
 import { createAdvisories } from '../shared/method.mjs';
 import { drillTarget, indexModel, resolveView } from './resolve.mjs';
 import { glossaryUsed, hardRuleProblems, modelAdvisories, relationshipAdvisories, viewAdvisories } from './rules.mjs';
-import { composeView, fitTarget } from './compose.mjs';
+import { composeView, targetFor } from './compose.mjs';
 import { createSvgRenderer, renderViewNav } from './svg.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -70,10 +70,18 @@ if (chapterProblems.length) throwDiagnosticProblems('Guided view validation fail
 
 function viewTitle(candidate) {
   if (candidate.title) return candidate.title;
-  if (candidate.type === 'systemLandscape') {
-    return model.enterprise ? t('c4.view.landscapeOf', { name: model.enterprise }) : t('c4.view.systemLandscape');
-  }
-  return t(`c4.view.${candidate.type}`, { name: index.elements.get(candidate.scope).name });
+  const base = candidate.type === 'systemLandscape'
+    ? (model.enterprise ? t('c4.view.landscapeOf', { name: model.enterprise }) : t('c4.view.systemLandscape'))
+    : t(`c4.view.${candidate.type}`, { name: index.elements.get(candidate.scope).name });
+  // Views of the same type and scope are told apart by their label.
+  const twin = views.some((other) => other !== candidate && other.type === candidate.type && other.scope === candidate.scope);
+  if (!twin || !candidate.label) return base;
+  // A label that repeats the type word ("Containers: web") adds only its rest.
+  const short = t(`c4.view.short.${candidate.type}`);
+  const label = candidate.label.toLowerCase().startsWith(short.toLowerCase())
+    ? candidate.label.slice(short.length).replace(/^\s*[:·-]?\s*/, '')
+    : candidate.label;
+  return `${base}: ${label || candidate.label}`;
 }
 
 function typeName(element) {
@@ -98,7 +106,13 @@ const drawnText = [
   ...resolved.relationships.flatMap((relationship) => [relationship.description, relationship.technology]),
   resolved.boundary?.name,
 ].filter(Boolean).join('\n');
-const glossaryEntries = glossaryUsed(meta.glossary, drawnText);
+// Terms used inside the explanation of a used term are printed too.
+let glossaryEntries = glossaryUsed(meta.glossary, drawnText);
+for (let depth = 0; depth < 3; depth += 1) {
+  const extended = glossaryUsed(meta.glossary, [drawnText, ...glossaryEntries.map(([, meaning]) => meaning)].join('\n'));
+  if (extended.length === glossaryEntries.length) break;
+  glossaryEntries = extended;
+}
 
 const composed = composeView({
   view,
@@ -108,18 +122,22 @@ const composed = composeView({
   typeName,
   glossaryEntries,
   profile: meta.quality_profile,
-  target: fitTarget(views.length, (diagram.cards || []).length),
+  target: targetFor(view, views.length, (diagram.cards || []).length),
 });
 const { layout } = composed;
 const problems = [...composed.problems];
 if (!composed.fits && isShowcase) {
   const { viewW, viewH } = layout.scene;
-  problems.push(`[viewport/fit] View "${view.key}" is ${Math.round(viewW)}×${Math.round(viewH)} (${composed.ratio.toFixed(2)}:1) and needs scrolling at 1440×900 (about 1.7:1 or wider fits); split it into views, hide shared relationships with exclude_relationships, exclude elements, or set layout.direction.`);
+  const target = targetFor(view, views.length, (diagram.cards || []).length);
+  const why = views.length > 6 ? ' (more than 6 views wrap the navigation bar onto a second row)' : '';
+  problems.push(`[viewport/fit] View "${view.key}" is ${Math.round(viewW)}×${Math.round(viewH)} (${composed.ratio.toFixed(2)}:1) and needs scrolling at 1440×900; this model needs ${target.toFixed(2)}:1 or wider${why}. Split the view, hide shared relationships with exclude_relationships, exclude elements, or accept scrolling with layout.fit "scroll".`);
 }
 if (problems.length && !draft) {
   throwDiagnosticProblems('C4 layout validation failed', problems, { subject: { ...subject, view: view.key } });
 }
 if (draft) {
+  // Notation findings belong in the draft too, so one look shows everything.
+  for (const entry of advisories.list()) if (!entry.waived) problems.push(`method/${entry.rule}: ${entry.message}`);
   // The CLI's draft command reads this line; the artifact shows the problems.
   process.stderr.write(`C4IFY_DRAFT_PROBLEMS ${JSON.stringify({ view: view.key, candidate: layout.candidate, ratio: Number(composed.ratio.toFixed(2)), problems })}\n`);
 }

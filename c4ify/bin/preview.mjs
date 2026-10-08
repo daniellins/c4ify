@@ -9,7 +9,7 @@ import { openLoopbackUrl } from './open-artifact.mjs';
 import { resolveOutputPath } from '../renderers/shared/output-path.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const cliPath = path.join(here, 'archify.mjs');
+const cliPath = path.join(here, 'c4ify.mjs');
 const loopbackHost = '127.0.0.1';
 const defaultDebounceMs = 400;
 const defaultPollMs = 800;

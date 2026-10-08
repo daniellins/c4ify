@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-08
+
 Changes from the first real-world test (eShop, Online Boutique and Spring PetClinic
 Microservices modelled from their repositories, with and without the skill).
 
@@ -30,7 +32,24 @@ Microservices modelled from their repositories, with and without the skill).
 - `placement` cells are visual (row 0 at the top) in both orientations; spacing still
   grows on retries when `gap_x`/`gap_y` are authored; `max_per_row` accepts up to 8.
 - Long words without spaces wrap at camelCase, digits or `- _ . /`.
-- Navigation tells apart views of the same type and scope (label, else title).
+- Navigation tells apart views of the same type and scope (label, else title) without
+  repeating the type word; default titles of such views end with their label.
+- Merged (implied) relationships show "(+N)" on the label and list every protocol.
+- Draft receipts include notation findings; `draft --png` adds a quick screenshot.
+- `layout.fit: "scroll"` accepts a deliberately tall view; the fit message states the
+  model's real target.
+- Long names shrink before a word is cut; the legend keeps a readable font on wide canvases.
+- Glossary terms used inside other entries are printed too.
+- Fixed: `preview` pointed at the Archify CLI; "NaNpx" in a label diagnostic.
+
+### Examples
+- `eshop`, `online-boutique` and `spring-petclinic` (pt-BR): real systems modelled from their
+  public repositories; gallery in the README. Every bundled example is validated in showcase by CI.
+
+### Evaluation
+Same prompts, with and without the skill, on the three systems: with 0.1.0 the skill took
+44 to ~110 tool calls and several views failed `visual-check`; with 0.2.0 it took 24 to 41 calls
+and every view (16) passed validation and `visual-check`.
 
 ## [0.1.0] - 2026-10-08
 

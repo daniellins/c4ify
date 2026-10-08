@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { clone, deliverSpec, draftSpec, findings, loadExample, spawnValidate, validateSpec } from './helpers.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
+import { clone, deliverSpec, draftSpec, findings, loadExample, skillRoot, spawnValidate, validateSpec } from './helpers.mjs';
 
 const example = loadExample('online-store.c4.json');
 
@@ -231,4 +233,44 @@ test('a method advisory names its finding in the diagnostic message', () => {
   delete spec.meta.glossary;
   const { receipt } = validateSpec(spec, { view: 'contexto' });
   assert.match(findings(receipt), /method\/R-C4-09: .*ERP/);
+});
+
+// v0.2.1 refinements.
+test('a merged arrow shows how many relationships it stands for', () => {
+  const spec = clone(example);
+  spec.model.relationships.push({ from: 'api', to: 'pagamentos', description: 'Consulta o status de pagamentos em', technology: 'gRPC' });
+  const { html } = deliverSpec(spec, { quality: 'standard' });
+  assert.match(html.contexto, /\(\+1\)/);
+  assert.match(html.contexto, /JSON\/HTTPS, gRPC|gRPC, JSON\/HTTPS/);
+});
+
+test('the navigation chip never repeats the type word', () => {
+  const spec = clone(example);
+  spec.views.push({ key: 'conteineres-fila', type: 'container', scope: 'loja', label: 'Contêineres: mensageria', exclude: ['spa', 'painel'] });
+  const { html } = deliverSpec(spec, { quality: 'standard' });
+  assert.match(html.conteineres, /<small>mensageria<\/small>/);
+  assert.match(html['conteineres-fila'], /<h1>Diagrama de contêineres de Loja On-line: mensageria<\/h1>/);
+});
+
+test('layout.fit "scroll" accepts a tall view in showcase', () => {
+  const spec = clone(example);
+  spec.views[2].layout = { direction: 'TB', max_per_row: 2, fit: 'scroll' };
+  const { receipt } = validateSpec(spec, { view: 'conteineres' });
+  assert.doesNotMatch(findings(receipt), /viewport\/fit/);
+});
+
+test('a draft lists notation findings with layout problems', () => {
+  const spec = clone(example);
+  delete spec.meta.glossary;
+  const { receipt } = draftSpec(spec, { view: 'contexto' });
+  assert.ok(receipt.views[0].problems.some((problem) => problem.startsWith('method/R-C4-09')));
+});
+
+test('every bundled example passes showcase in every view', () => {
+  const names = fs.readdirSync(path.join(skillRoot, 'examples')).filter((name) => name.endsWith('.c4.json'));
+  assert.ok(names.length >= 5);
+  for (const name of names) {
+    const { status, receipt } = validateSpec(loadExample(name));
+    assert.equal(status, 0, `${name}: ${findings(receipt)}`);
+  }
 });

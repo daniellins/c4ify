@@ -164,6 +164,7 @@ export function liftRelationships(index, visibleIds) {
         technology: relationship.technology,
         async: relationship.async === true,
         sources: [relationship],
+        technologies: new Set(relationship.technology ? [relationship.technology] : []),
         direct,
         order,
       });
@@ -178,16 +179,18 @@ export function liftRelationships(index, visibleIds) {
         async: relationship.async === true,
         direct: true,
       });
-    } else if (!entry.direct && (entry.technologyConflict || entry.technology !== relationship.technology)) {
-      // Implied relationships that disagree on technology (including one
-      // that names none) keep none, rather than claiming one protocol for all.
-      entry.technology = undefined;
-      entry.technologyConflict = true;
     }
+    if (relationship.technology) entry.technologies.add(relationship.technology);
   });
   return [...merged.values()]
     .sort((left, right) => left.order - right.order)
-    .map((entry, index) => ({ ...entry, id: `r${index + 1}`, count: entry.sources.length }));
+    .map((entry, index) => ({
+      ...entry,
+      // A merged arrow names every protocol it stands for, not just one.
+      technology: entry.direct || entry.technologies.size <= 1 ? entry.technology || [...entry.technologies][0] : [...entry.technologies].join(', '),
+      id: `r${index + 1}`,
+      count: entry.sources.length,
+    }));
 }
 
 // C4 kind used for color, legend and the viewer's Semantic Lens.

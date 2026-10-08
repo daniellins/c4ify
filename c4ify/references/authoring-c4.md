@@ -40,10 +40,15 @@ Write every element and relationship **once** in `model`; views only select.
 | `chapters` | guided views (≤ 5) focusing elements this view draws |
 | `meta.glossary` | `{ "ERP": "…", "EF Core": "…" }`: explains acronyms (a key with spaces also covers its first word); each view prints the terms it uses under the key (R-C4-09) |
 
+**Limits** (the schema rejects more): element `name` 60 chars, `description` 200,
+`technology` 48; relationship `description` 80, `technology` 40; view `label` 32,
+`title` 120; `placement` `col` in steps of 0.5 (0-20), `row` 0-20; `max_per_row` 2-8;
+`element_width` 160-300; glossary keys 1-16 chars (letters, digits, `& / . + -`, space).
+
 **Author relationships at the lowest level you model.** `component → container`
 also appears as `container → container` in the container view and as
 `system → system` in the context view (implied relationships, merged with a
-count). A relationship authored only at system level does not appear in a
+count shown as "(+N)" on the label and every protocol listed). A relationship authored only at system level does not appear in a
 container view: no container is known to make it.
 
 ## Default selection per view
@@ -72,6 +77,11 @@ container view: no container is known to make it.
   220/260 px boxes, spacing +0 to +84 px) and keeps the first that passes every
   gate and fits a 1440×900 screen (about 1.7:1 or wider). `layout` pins any
   of these; `draft` shows which one won and why the others failed.
+- Text size follows the canvas: a wider layout (8 per row) needs larger fonts
+  to stay legible, so the same description may wrap to more lines; shorten it
+  or split the view rather than widening boxes.
+- `layout.fit: "scroll"` accepts a view taller than the screen (for a deliberate
+  big picture); its `visual-check` containment then fails by design.
 - Real systems with 12+ containers or infrastructure every service calls
   rarely fit one picture: hide shared arrows (`exclude_relationships`) or split
   the view per flow, then use `placement`/`routes` for the last details.

@@ -59,14 +59,15 @@ export function createSvgRenderer(ctx) {
   }
 
   function textBlock(box) {
-    const nameH = box.nameLines.length * fonts.name * 1.22;
+    const nameFont = box.nameFont || fonts.name;
+    const nameH = box.nameLines.length * nameFont * 1.22;
     const typeH = box.typeLines.length * fonts.detail * 1.25;
     const descH = box.descriptionLines.length ? 7 + box.descriptionLines.length * fonts.detail * 1.3 : 0;
     const top = box.y + box.glyph + box.cap + (box.height - box.glyph - box.cap - (nameH + 5 + typeH + descH)) / 2;
-    const nameCenter = top + fonts.name * 0.85 + ((box.nameLines.length - 1) * fonts.name * 1.22) / 2;
+    const nameCenter = top + nameFont * 0.85 + ((box.nameLines.length - 1) * nameFont * 1.22) / 2;
     const typeTop = top + nameH + 5 + fonts.detail * 0.85;
     const descTop = typeTop + (box.typeLines.length - 1) * fonts.detail * 1.25 + 7 + fonts.detail * 1.3;
-    const name = renderLines(box.nameLines, { x: box.cx, y: nameCenter, fontSize: fonts.name, lineHeight: fonts.name * 1.22, weight: 700, attrs: 'data-node-label=""' });
+    const name = renderLines(box.nameLines, { x: box.cx, y: nameCenter, fontSize: nameFont, lineHeight: nameFont * 1.22, weight: 700, attrs: 'data-node-label=""' });
     const type = renderLines(box.typeLines, { x: box.cx, y: typeTop + ((box.typeLines.length - 1) * fonts.detail * 1.25) / 2, fontSize: fonts.detail, className: 't-muted', attrs: 'data-detail="context"' });
     const description = box.descriptionLines.length
       ? `\n          ${renderLines(box.descriptionLines, { x: box.cx, y: descTop + ((box.descriptionLines.length - 1) * fonts.detail * 1.3) / 2, fontSize: fonts.detail, lineHeight: fonts.detail * 1.3, className: 't-muted', attrs: 'data-detail="context"' })}`
@@ -146,7 +147,7 @@ export function createSvgRenderer(ctx) {
     return renderResolvedLegend({
       entries: resolveLegend(meta.legend, catalog, present),
       locale,
-      layout: { x: MARGIN, baselineY: scene.viewH - 26 - scene.glossaryH, width: scene.viewW - MARGIN * 2, minTitleY: contentBottom + 8, obstacles, unfit: meta.legend === undefined ? 'hide' : 'error', diagramType: 'c4' },
+      layout: { x: MARGIN, fontSize: Math.max(8, scene.fonts.floor - 2), baselineY: scene.viewH - 26 - scene.glossaryH, width: scene.viewW - MARGIN * 2, minTitleY: contentBottom + 8, obstacles, unfit: meta.legend === undefined ? 'hide' : 'error', diagramType: 'c4' },
       renderSwatch: legendSwatch,
     });
   }
@@ -235,7 +236,12 @@ export function renderViewNav({ views, view, index, model, t, viewTitle }) {
     const short = t(`c4.view.short.${candidate.type}`);
     const scope = candidate.scope ? index.elements.get(candidate.scope).name : model.enterprise || '';
     const ambiguous = views.some((other) => other !== candidate && sameKind(other, candidate));
-    const named = candidate.label || (ambiguous && candidate.title ? candidate.title.replace(/^.*?:\s*/, '') : null);
+    const fromTitle = ambiguous && candidate.title ? candidate.title.replace(/^.*?:\s*/, '') : null;
+    // Never repeat the type word the chip already shows ("Containers: web").
+    const raw = candidate.label || fromTitle || '';
+    const named = (raw.toLowerCase().startsWith(short.toLowerCase())
+      ? raw.slice(short.length).replace(/^\s*[:·-]?\s*/, '')
+      : raw) || null;
     const text = named
       ? `${esc(short)} <small>${esc(named)}</small>`
       : `${esc(short)}${scope ? ` <small>${esc(scope)}</small>` : ''}`;
