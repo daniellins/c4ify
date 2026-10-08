@@ -1,11 +1,11 @@
-// Geometry of one C4 view: orientation, fonts, element boxes, the scope
-// boundary and the canvas. Pure: problems are returned, not thrown, so the
-// renderer can retry with more room before reporting them.
+// Geometry of one C4 view for one layout candidate: fonts, element boxes, the
+// scope boundary, the glossary band and the canvas. Pure: problems are
+// returned, not thrown, so the renderer can compare candidates and retry.
 
 import { minimumReadableSourceTextPx } from '../shared/desktop-readability.mjs';
-import { textUnits } from '../shared/utils.mjs';
 import { rectsOverlap } from '../shared/geometry.mjs';
-import { fitAspect, round, wrapText } from '../shared/method.mjs';
+import { fitAspect, round } from '../shared/method.mjs';
+import { textUnits } from '../shared/utils.mjs';
 import { kindOf } from './resolve.mjs';
 import { isStore } from './layout.mjs';
 
@@ -14,12 +14,14 @@ export const PAD = 26;
 export const TITLE_BAND = 22;
 const LEGEND_BAND = 78;
 const ESTIMATED_BOX_HEIGHT = 120;
+const GLOSSARY_LINE = 1.45;
 
-// Orientation: top-down reads best, but a view with four or more layers and
-// few columns becomes a strip too tall for a laptop screen at a legible size;
-// such views flow left to right instead (layers become columns).
-function chooseDirection(view, layerCount, slotCount, dims) {
-  if (view.layout?.direction) return view.layout.direction;
+// Preferred orientation: top-down reads best, but a view with four or more
+// layers and few columns becomes a strip too tall for a laptop screen; such
+// views prefer left to right (layers become columns).
+export function preferredDirection(cells, dims) {
+  const layerCount = Math.max(...[...cells.values()].map((cell) => cell.row)) + 1;
+  const slotCount = Math.max(...[...cells.values()].map((cell) => cell.col)) + 1;
   const tbAspect = (slotCount * (dims.elementWidth + dims.gapX)) / (layerCount * (ESTIMATED_BOX_HEIGHT + dims.gapY));
   const lrAspect = (layerCount * (dims.elementWidth + dims.gapX)) / (slotCount * (ESTIMATED_BOX_HEIGHT + dims.gapY));
   return layerCount >= 4 && tbAspect < 1.5 && lrAspect > tbAspect ? 'LR' : 'TB';
@@ -27,7 +29,49 @@ function chooseDirection(view, layerCount, slotCount, dims) {
 
 function fontsFor(viewW) {
   const floor = round(minimumReadableSourceTextPx(viewW) + 0.15);
-  return { floor, name: Math.max(12.5, floor + 1.5), detail: Math.max(9.2, floor), label: Math.max(8.6, floor) };
+  return { floor, name: Math.max(12.5, floor + 1.5), detail: Math.max(9.2, floor), label: Math.max(8.6, floor), glossary: Math.max(9, floor) };
+}
+
+// Word wrap that can also break a word longer than a line (service ids such as
+// "productcatalogservice", package names) at camelCase, digits or - _ . /
+// boundaries, and as a last resort anywhere. Pieces of one word are joined
+// without a space when they share a line.
+const SOFT_BREAK = /(?<=[a-z0-9])(?=[A-Z])|(?<=[-_./])/;
+function splitWord(word, units) {
+  if (textUnits(word) <= units) return [word];
+  const parts = word.split(SOFT_BREAK).filter(Boolean);
+  const chunks = [];
+  let current = '';
+  for (const part of parts.length > 1 ? parts : [...word]) {
+    if (current && textUnits(current + part) > units) {
+      chunks.push(current);
+      current = '';
+    }
+    current += part;
+    while (textUnits(current) > units) {
+      chunks.push(current.slice(0, units));
+      current = current.slice(units);
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks;
+}
+
+export function wrapText(text, units, maxLines) {
+  const tokens = String(text ?? '').trim().split(/\s+/).filter(Boolean)
+    .flatMap((word) => splitWord(word, units).map((piece, index) => ({ piece, glue: index > 0 })));
+  const lines = [];
+  let current = '';
+  for (const { piece, glue } of tokens) {
+    const candidate = current ? `${current}${glue ? '' : ' '}${piece}` : piece;
+    if (!current || textUnits(candidate) <= units) current = candidate;
+    else {
+      lines.push(current);
+      current = piece;
+    }
+  }
+  if (current) lines.push(current);
+  return { lines: lines.slice(0, maxLines), overflow: lines.length > maxLines };
 }
 
 function measureBox(element, { fonts, elementWidth, typeName, t }) {
@@ -76,7 +120,7 @@ function placeTopDown(all, { layerCount, inBoundary, gapX, gapY, elementWidth })
     box.y = round(layerY[box.cell.row]);
     box.height = layerHeight[box.cell.row];
   }
-  return Math.ceil(layerY.at(-1) + layerHeight.at(-1) + (inBoundary(layerCount - 1) ? PAD : 0) + MARGIN + LEGEND_BAND);
+  return Math.ceil(layerY.at(-1) + layerHeight.at(-1) + (inBoundary(layerCount - 1) ? PAD : 0) + MARGIN);
 }
 
 function placeLeftRight(all, { layerCount, inBoundary, gapX, gapY, elementWidth, hasBoundary, sideIds }) {
@@ -100,7 +144,7 @@ function placeLeftRight(all, { layerCount, inBoundary, gapX, gapY, elementWidth,
     box.y = round(top + box.cell.col * (height + slotGap) + (sideIds.has(box.id) ? sideGap : 0));
     box.height = height;
   }
-  return Math.ceil(Math.max(...all.map((box) => box.y + box.height)) + (hasBoundary && !sideIds.size ? PAD : 0) + MARGIN + LEGEND_BAND);
+  return Math.ceil(Math.max(...all.map((box) => box.y + box.height)) + (hasBoundary && !sideIds.size ? PAD : 0) + MARGIN);
 }
 
 function boundaryFor(resolved, boxes, label) {
@@ -112,18 +156,40 @@ function boundaryFor(resolved, boxes, label) {
   return { id: resolved.boundary.id, label, members: new Set(members.map((box) => box.id)), x: round(x1), y: round(y1), width: round(x2 - x1), height: round(y2 - y1) };
 }
 
-// gapBoost widens the gaps between elements on retries, when a relationship
-// label found no free spot at the default spacing.
-export function buildScene({ view, resolved, cells, boundaryRows, sideIds, t, typeName, viewIndex, gapBoost = 0 }) {
+// view.placement means the visual cell: { row, col } as the reader sees it.
+// Cells are stored as { row: layer, col: slot }, so left-to-right swaps them.
+function placedCells(view, cells, sideIds, direction) {
+  const result = new Map(cells);
+  const side = new Set(sideIds);
+  for (const [id, cell] of Object.entries(view.placement || {})) {
+    if (!result.has(id)) continue;
+    result.set(id, direction === 'LR' ? { row: cell.col, col: cell.row } : { row: cell.row, col: cell.col });
+    side.delete(id);
+  }
+  return { cells: result, sideIds: side };
+}
+
+// Glossary lines drawn inside the SVG, under the legend, so the explanation
+// travels with exports and never pushes the page below the fold.
+function glossaryLines(entries, width, fonts, t) {
+  if (!entries.length) return [];
+  const units = Math.max(20, Math.floor(width / (fonts.glossary * 0.62)));
+  const text = `${t('c4.glossary.title')}: ${entries.map(([term, meaning]) => t('c4.glossary.item', { term, meaning })).join(' · ')}`;
+  return wrapText(text, units, 6).lines;
+}
+
+// candidate: { direction, elementWidth, gapBoost }; layoutRows from assignRows.
+export function buildScene({ view, resolved, layoutRows, candidate, t, typeName, viewIndex, glossaryEntries = [] }) {
   const dims = {
-    elementWidth: view.layout?.element_width || 220,
-    gapX: (view.layout?.gap_x || 120) + gapBoost,
-    gapY: (view.layout?.gap_y || 100) + gapBoost,
+    elementWidth: candidate.elementWidth,
+    gapX: (view.layout?.gap_x || 120) + candidate.gapBoost,
+    gapY: (view.layout?.gap_y || 100) + candidate.gapBoost,
   };
+  const { direction } = candidate;
+  const { cells, sideIds } = placedCells(view, layoutRows.cells, layoutRows.sideIds, direction);
   const hasBoundary = Boolean(resolved.boundary);
   const layerCount = Math.max(...[...cells.values()].map((cell) => cell.row)) + 1;
   const slotCount = Math.max(...[...cells.values()].map((cell) => cell.col)) + 1;
-  const direction = chooseDirection(view, layerCount, slotCount, dims);
   const span = direction === 'TB' ? slotCount : layerCount;
   let viewW = Math.ceil(MARGIN * 2 + PAD * 2 + span * dims.elementWidth + (span - 1) * dims.gapX + (direction === 'LR' && hasBoundary ? PAD * 2 : 0));
   const fonts = fontsFor(viewW);
@@ -137,9 +203,12 @@ export function buildScene({ view, resolved, cells, boundaryRows, sideIds, t, ty
     boxes.set(element.id, { ...box, cell: cells.get(element.id) });
   }
   const all = [...boxes.values()];
-  const inBoundary = (layer) => hasBoundary && boundaryRows.has(layer);
+  const inBoundary = (layer) => hasBoundary && layoutRows.boundaryRows.has(layer);
   const context = { layerCount, inBoundary, hasBoundary, sideIds, ...dims };
-  let viewH = direction === 'TB' ? placeTopDown(all, context) : placeLeftRight(all, context);
+  const contentH = direction === 'TB' ? placeTopDown(all, context) : placeLeftRight(all, context);
+  const glossary = glossaryLines(glossaryEntries, viewW - MARGIN * 2, fonts, t);
+  const glossaryH = glossary.length ? Math.ceil(glossary.length * fonts.glossary * GLOSSARY_LINE + 10) : 0;
+  let viewH = contentH + LEGEND_BAND + glossaryH;
   if (view.viewBox) {
     viewW = Math.max(viewW, view.viewBox[0]);
     viewH = Math.max(viewH, view.viewBox[1]);
@@ -151,7 +220,7 @@ export function buildScene({ view, resolved, cells, boundaryRows, sideIds, t, ty
   }
   const boundary = hasBoundary ? boundaryFor(resolved, boxes, `${resolved.boundary.name} ${t('c4.type.plain', { type: typeName(resolved.boundary) })}`) : null;
   problems.push(...overlapProblems(all, boundary, viewIndex));
-  return { boxes, boundary, viewW, viewH, fonts, direction, problems };
+  return { boxes, boundary, viewW, viewH, fonts, direction, glossary, glossaryH, problems };
 }
 
 function overlapProblems(all, boundary, viewIndex) {

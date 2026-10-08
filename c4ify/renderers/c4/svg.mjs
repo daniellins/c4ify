@@ -14,7 +14,7 @@ import { C4_KIND_PALETTE } from './palette.mjs';
 const LEGEND_KINDS = ['person', 'software-system', 'container', 'component', 'external-person', 'external-system', 'external-container', 'external-component'];
 
 export function createSvgRenderer(ctx) {
-  const { meta, locale, t, index, view, scene, relations, router, labels, titleRect, typeName, viewTitle, drillFor } = ctx;
+  const { meta, locale, t, index, view, scene, relations, router, labels, titleRect, typeName, viewTitle, drillFor, problems = [] } = ctx;
   const { boxes, boundary, fonts } = scene;
   const fileFor = (candidate) => `${candidate.key}.html`;
   const steps = new Map([...boxes.keys()].map((id, position) => [id, Math.min(position, 6)]));
@@ -146,9 +146,51 @@ export function createSvgRenderer(ctx) {
     return renderResolvedLegend({
       entries: resolveLegend(meta.legend, catalog, present),
       locale,
-      layout: { x: MARGIN, baselineY: scene.viewH - 26, width: scene.viewW - MARGIN * 2, minTitleY: contentBottom + 8, obstacles, unfit: meta.legend === undefined ? 'hide' : 'error', diagramType: 'c4' },
+      layout: { x: MARGIN, baselineY: scene.viewH - 26 - scene.glossaryH, width: scene.viewW - MARGIN * 2, minTitleY: contentBottom + 8, obstacles, unfit: meta.legend === undefined ? 'hide' : 'error', diagramType: 'c4' },
       renderSwatch: legendSwatch,
     });
+  }
+
+  // Acronyms used by this view, inside the SVG so they travel with exports.
+  function renderGlossary() {
+    if (!scene.glossary.length) return '';
+    const lineH = scene.fonts.glossary * 1.45;
+    const top = scene.viewH - scene.glossaryH + 4;
+    return scene.glossary.map((line, position) => `        <text data-c4-glossary="" x="${MARGIN}" y="${round(top + scene.fonts.glossary + position * lineH)}" class="t-muted" font-size="${scene.fonts.glossary}">${esc(line)}</text>`).join('\n');
+  }
+
+  // Draft mode: outline what each problem names (element ids in quotes,
+  // relationship pairs) so the author can see the layout and fix it.
+  function flagged() {
+    const ids = new Set();
+    const pairs = new Set();
+    for (const problem of problems) {
+      for (const match of problem.matchAll(/"([A-Za-z][A-Za-z0-9_-]*)"\s*->\s*"([A-Za-z][A-Za-z0-9_-]*)"/g)) pairs.add(`${match[1]}>${match[2]}`);
+      for (const match of problem.matchAll(/\(([A-Za-z][A-Za-z0-9_-]*) \u2192 ([A-Za-z][A-Za-z0-9_-]*)\)/g)) pairs.add(`${match[1]}>${match[2]}`);
+      for (const match of problem.matchAll(/"([A-Za-z][A-Za-z0-9_-]*)"/g)) if (boxes.has(match[1])) ids.add(match[1]);
+    }
+    return { ids, pairs };
+  }
+
+  function renderProblems() {
+    if (!problems.length) return '';
+    const { ids, pairs } = flagged();
+    const outlines = [...ids].map((id) => {
+      const box = boxes.get(id);
+      return `        <rect class="c4-problem" x="${box.x - 5}" y="${box.y - 5}" width="${box.width + 10}" height="${box.height + 10}" rx="10"/>`;
+    });
+    const edges = relations.filter((relation) => pairs.has(`${relation.from}>${relation.to}`))
+      .map((relation) => `        <path class="c4-problem-edge" d="${router.pathFor(relation).d}"/>`);
+    return [...outlines, ...edges].join('\n');
+  }
+
+  function renderDraftPanel() {
+    const items = problems.map((problem) => `<li>${esc(problem)}</li>`).join('');
+    return `
+    <details class="c4-draft no-print" open>
+      <summary>${esc(t('c4.draft.title', { count: problems.length }))}</summary>
+      ${problems.length ? `<ol>${items}</ol>` : `<p>${esc(t('c4.draft.clean'))}</p>`}
+    </details>`;
   }
 
   function renderSvg(svgMeta, advisoriesMarkup) {
@@ -175,21 +217,28 @@ ${relations.map(renderRelationLabel).join('\n')}
 
         <!-- Boundary label -->
 ${frame.label}
+${renderProblems()}
 
         <!-- Legend -->
 ${renderLegend()}
+${renderGlossary()}
       </svg>`;
   }
 
-  return { renderSvg };
+  return { renderSvg, renderDraftPanel };
 }
 
 export function renderViewNav({ views, view, index, model, t, viewTitle }) {
   if (views.length < 2) return '';
+  const sameKind = (left, right) => left.type === right.type && left.scope === right.scope;
   const items = views.map((candidate) => {
     const short = t(`c4.view.short.${candidate.type}`);
     const scope = candidate.scope ? index.elements.get(candidate.scope).name : model.enterprise || '';
-    const text = `${esc(short)}${scope ? ` <small>${esc(scope)}</small>` : ''}`;
+    const ambiguous = views.some((other) => other !== candidate && sameKind(other, candidate));
+    const named = candidate.label || (ambiguous && candidate.title ? candidate.title.replace(/^.*?:\s*/, '') : null);
+    const text = named
+      ? `${esc(short)} <small>${esc(named)}</small>`
+      : `${esc(short)}${scope ? ` <small>${esc(scope)}</small>` : ''}`;
     return candidate === view
       ? `<span class="c4-nav-current" aria-current="page" title="${esc(t('c4.nav.current'))}">${text}</span>`
       : `<a href="${esc(`${candidate.key}.html`)}" title="${esc(viewTitle(candidate))}">${text}</a>`;

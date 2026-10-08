@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { clone, deliverSpec, findings, loadExample, spawnValidate, validateSpec } from './helpers.mjs';
+import { clone, deliverSpec, draftSpec, findings, loadExample, spawnValidate, validateSpec } from './helpers.mjs';
 
 const example = loadExample('online-store.c4.json');
 
@@ -170,4 +170,65 @@ test('uppercase words with accents are not taken for acronyms', () => {
   spec.model.elements.find((element) => element.id === 'loja').description = 'Loja ELETRÔNICA com catálogo e pedidos.';
   const { receipt } = validateSpec(spec, { view: 'contexto' });
   assert.doesNotMatch(findings(receipt), /ELETR/);
+});
+
+// v0.2: drafts, fit, glossary, navigation, hidden relationships.
+test('draft renders a view that fails composition and lists its problems', () => {
+  const spec = clone(example);
+  spec.views[2].layout = { direction: 'TB', max_per_row: 2, gap_x: 60, gap_y: 90, element_width: 160 };
+  const { receipt, html } = draftSpec(spec, { view: 'conteineres' });
+  const view = receipt.views[0];
+  assert.equal(view.rendered, true);
+  assert.ok(view.problems.length > 0);
+  assert.match(html.conteineres, /class="c4-draft/);
+  assert.match(html.conteineres, /class="c4-problem/);
+});
+
+test('validate reports every layout problem of a view at once', () => {
+  const spec = clone(example);
+  spec.views[2].layout = { direction: 'TB', max_per_row: 2, gap_x: 60, gap_y: 90, element_width: 160 };
+  const { receipt } = validateSpec(spec, { view: 'conteineres' });
+  const text = findings(receipt);
+  assert.match(text, /needs more than|overlap|crosses|does not fit|viewport\/fit/);
+  assert.ok((receipt.diagnostics || []).length > 1);
+});
+
+test('the glossary is drawn inside the SVG, only with terms the view uses', () => {
+  const spec = clone(example);
+  spec.meta.glossary = { ERP: 'Sistema integrado de gestão', 'EF Core': 'Entity Framework Core' };
+  const { html } = deliverSpec(spec);
+  assert.match(html.contexto, /data-c4-glossary=""[^>]*>[^<]*ERP: Sistema integrado de gestão/);
+  assert.doesNotMatch(html.contexto, /Entity Framework Core/);
+  assert.doesNotMatch(html.contexto, /class="card"/);
+});
+
+test('a glossary key with a space covers its acronym', () => {
+  const spec = clone(example);
+  spec.model.elements.find((element) => element.id === 'api').technology = 'EF Core, Node.js';
+  spec.model.elements.find((element) => element.id === 'api').description = 'Usa EF para catálogo, carrinho e pedidos.';
+  spec.meta.glossary = { ...spec.meta.glossary, 'EF Core': 'Entity Framework Core' };
+  const { receipt } = validateSpec(spec, { view: 'conteineres' });
+  assert.doesNotMatch(findings(receipt), /R-C4-09/);
+});
+
+test('views of the same type and scope are told apart in the navigation', () => {
+  const spec = clone(example);
+  spec.views.push({ key: 'conteineres-fila', type: 'container', scope: 'loja', label: 'Mensageria', exclude: ['spa', 'painel'] });
+  const { html } = deliverSpec(spec);
+  assert.match(html.conteineres, /<small>Mensageria<\/small>/);
+});
+
+test('exclude_relationships hides arrows as drawn, with wildcards', () => {
+  const spec = clone(example);
+  spec.views[2].exclude_relationships = [{ from: '*', to: 'fila' }];
+  const { html } = deliverSpec(spec);
+  assert.doesNotMatch(html.conteineres, /data-edge-to="fila"/);
+  assert.match(html.conteineres, /data-node-id="fila"/);
+});
+
+test('a method advisory names its finding in the diagnostic message', () => {
+  const spec = clone(example);
+  delete spec.meta.glossary;
+  const { receipt } = validateSpec(spec, { view: 'contexto' });
+  assert.match(findings(receipt), /method\/R-C4-09: .*ERP/);
 });

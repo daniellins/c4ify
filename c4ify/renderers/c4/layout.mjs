@@ -6,7 +6,7 @@
 // at the bottom. Inside the scope, elements are ranked by the longest path of
 // in-scope relationships, data stores sink to the last inner row, and every
 // row is ordered by the barycenter of its neighbours to keep arrows short and
-// uncrossed. `view.placement` overrides any element's { row, col }.
+// uncrossed. `view.placement` (applied by scene.mjs) overrides any cell.
 
 const STORE = /\b(sql|postgres(?:ql)?|mysql|mariadb|oracle|mongo(?:db)?|redis|cassandra|dynamo(?:db)?|elasticsearch|opensearch|database|banco de dados|db|s3|blob|bucket|data lake|warehouse)\b/i;
 
@@ -94,12 +94,9 @@ function finish(view, { top, core, side, bottom }, edges, zoomed) {
   // of column 0; shift everything so the leftmost cell is column 0.
   const minCol = Math.min(...[...cells.values()].map((cell) => cell.col));
   if (minCol < 0) for (const [id, cell] of cells) cells.set(id, { row: cell.row, col: cell.col - minCol });
+  // view.placement is applied by the scene, which knows the orientation
+  // (placement always means the visual row/column).
   const sideIds = new Set(fixed.keys());
-  for (const [id, cell] of Object.entries(view.placement || {})) {
-    if (!cells.has(id)) continue;
-    cells.set(id, { row: cell.row, col: cell.col });
-    sideIds.delete(id);
-  }
   const boundaryRows = new Set();
   if (zoomed) for (let index = coreStart; index < coreStart + core.length; index += 1) boundaryRows.add(index);
   return { cells, boundaryRows, sideIds };
@@ -144,6 +141,7 @@ function rankCore(core, edges, coreIds) {
       rank.set(element.id, Math.max(0, ...core.filter((other) => !infra.has(other.id) && other.id !== element.id).map((other) => rank.get(other.id))));
     }
   }
+  invertSharedHubs(core, edges, inner, infra, rank);
   const stores = core.filter((element) => infra.has(element.id));
   const others = core.filter((element) => !infra.has(element.id));
   const layers = [];
@@ -154,6 +152,32 @@ function rankCore(core, edges, coreIds) {
   const compact = layers.filter(Boolean);
   if (stores.length) compact.push(stores);
   return compact;
+}
+
+// The "sandwich": a hub (e.g. a checkout service) calls several services that
+// its own caller (e.g. the frontend) also calls. Longest-path layering stacks
+// caller, hub, shared services, so every caller arrow crosses the hub's row.
+// Instead the shared services move up to the hub's row and the hub drops one
+// row below them: the caller reaches them from above, the hub from below, and
+// the hub's private callees sit under the hub.
+const SANDWICH_MIN_SHARED = 2;
+const SANDWICH_MIN_FANOUT = 3;
+function invertSharedHubs(core, edges, inner, infra, rank) {
+  const coreIds = new Set(core.map((element) => element.id));
+  for (const hub of core) {
+    if (infra.has(hub.id)) continue;
+    const callees = inner.filter((edge) => edge.from === hub.id && !infra.has(edge.to)).map((edge) => edge.to);
+    if (callees.length < SANDWICH_MIN_FANOUT) continue;
+    const callers = new Set(edges.filter((edge) => edge.to === hub.id).map((edge) => edge.from));
+    const shared = callees.filter((id) => edges.some((edge) => edge.to === id && edge.from !== hub.id && callers.has(edge.from)));
+    if (shared.length < SANDWICH_MIN_SHARED) continue;
+    const level = rank.get(hub.id);
+    for (const id of shared) rank.set(id, level);
+    rank.set(hub.id, level + 1);
+    for (const id of callees) {
+      if (!shared.includes(id) && coreIds.has(id)) rank.set(id, Math.max(rank.get(id), level + 1));
+    }
+  }
 }
 
 function orderByBarycenter(rows, edges, fixed = new Map()) {
@@ -186,4 +210,27 @@ function orderByBarycenter(rows, edges, fixed = new Map()) {
   const down = rows.map((_row, index) => index);
   sweep(down.slice(1));
   sweep(down.slice(0, -1).reverse());
+  keepRowNeighboursAdjacent(rows, edges);
+}
+
+// Two elements of one row that talk to each other sit side by side, so their
+// arrow is one short horizontal segment instead of a run across the row.
+function keepRowNeighboursAdjacent(rows, edges) {
+  for (const row of rows) {
+    const ids = new Set(row.map((element) => element.id));
+    for (const edge of edges) {
+      if (!ids.has(edge.from) || !ids.has(edge.to)) continue;
+      const from = row.findIndex((element) => element.id === edge.from);
+      const to = row.findIndex((element) => element.id === edge.to);
+      if (Math.abs(from - to) <= 1) continue;
+      // Move the element with fewer same-row ties next to the other one.
+      const ties = (id) => edges.filter((other) => (other.from === id && ids.has(other.to)) || (other.to === id && ids.has(other.from))).length;
+      const [moving, anchorId] = ties(edge.from) <= ties(edge.to) ? [edge.from, edge.to] : [edge.to, edge.from];
+      // Keep the side it came from: a mover from the right lands right of the anchor.
+      const cameFromRight = row.findIndex((item) => item.id === moving) > row.findIndex((item) => item.id === anchorId);
+      const [element] = row.splice(row.findIndex((item) => item.id === moving), 1);
+      const anchorIndex = row.findIndex((item) => item.id === anchorId);
+      row.splice(cameFromRight ? anchorIndex + 1 : anchorIndex, 0, element);
+    }
+  }
 }

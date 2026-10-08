@@ -56,7 +56,7 @@
           "type": "object",
           "maxProperties": 40,
           "propertyNames": {
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9&/.-]{0,11}$"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9&/.+ -]{0,15}$"
           },
           "additionalProperties": {
             "type": "string",
@@ -359,7 +359,7 @@
             "max_per_row": {
               "type": "integer",
               "minimum": 2,
-              "maximum": 6
+              "maximum": 8
             },
             "element_width": {
               "type": "number",
@@ -406,6 +406,33 @@
         },
         "viewBox": {
           "$ref": "common.schema.json#/$defs/viewBox"
+        },
+        "exclude_relationships": {
+          "type": "array",
+          "maxItems": 40,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "from",
+              "to"
+            ],
+            "properties": {
+              "from": {
+                "type": "string",
+                "pattern": "^(\\*|[a-zA-Z][a-zA-Z0-9_-]*)$"
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^(\\*|[a-zA-Z][a-zA-Z0-9_-]*)$"
+              }
+            }
+          }
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
         }
       }
     }

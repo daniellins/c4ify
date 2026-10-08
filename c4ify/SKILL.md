@@ -16,7 +16,7 @@ description: >
   outside the C4 notation (use archify).
 license: MIT
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
   author: Daniel Lins
   based_on: daniellins/bizify 0.1.0 (MIT), itself forked from tt-a1i/archify 2.17.0-dev.1 (MIT)
 ---
@@ -59,20 +59,44 @@ value (C4 calls it optional). When the request is ambiguous, run
    relationship once in `model`, at the lowest level you model (relationships
    are lifted to higher views automatically), then list the `views`. Set
    `meta.quality_profile: "showcase"`; for Portuguese content set
-   `meta.locale: "pt-BR"` and write every text with full accents.
-4. Validate every view after each edit:
+   `meta.locale: "pt-BR"` and write every text with full accents. Save the
+   model with your file-writing tool, not a shell heredoc (quotes, accents
+   and backslashes break heredocs, notably on Windows).
+4. Look before you fix. Render a draft of every view; it renders even when
+   layout gates fail, outlines each problem in red and lists them all at once:
+
+   ```bash
+   node bin/c4ify.mjs draft c4 <model.json> <draft-dir> --json
+   ```
+
+   The receipt gives, per view, the layout the renderer chose (orientation,
+   elements per row, box width, extra spacing, aspect) and every problem.
+   HARD findings `[R-C4-…]` stop the draft: the model is wrong, fix the facts.
+   For layout problems, in this order:
+   - **Shared infrastructure** (config, discovery, tracing, logging reached by
+     every service): hide those arrows with
+     `exclude_relationships: [{ "from": "*", "to": "<id>" }]` and say so in the
+     view description, or give them their own view.
+   - **Too many elements or arrows for one picture**: split the view (one per
+     flow or subsystem) and give each a nav `label`.
+   - **One element in the way**: `placement: { "<id>": { "row": r, "col": c } }`.
+     Rows and columns are visual: row 0 is the top row (people), col 0 the
+     leftmost; `.5` centres between two columns. The same cells apply in both
+     orientations.
+   - **One arrow or label**: `routes[{ from, to, fromSide, toSide, labelDx, labelDy }]`.
+   If two rounds of drafts do not reduce the problem count, stop and report.
+5. Validate every view (the same gates, now as a pass/fail receipt):
 
    ```bash
    node bin/c4ify.mjs validate c4 <model.json> --quality showcase --json
    ```
 
-   Each view reports 0 errors and 0 warnings when it passes. `[R-C4-…]`
-   HARD findings mean the model is wrong: fix the facts. `method/R-C4-…` SOFT
-   findings mean the notation is incomplete: fix the content, or waive with a
-   reason (`references/authoring-contract.md`). Layout diagnostics name the
-   element or arrow and the `placement`/`routes` knob to use. If two rounds do
-   not reduce the error count, stop and report the remaining diagnostics.
-5. Deliver once the model is frozen (one HTML per view into a folder), then
+   Each view reports 0 errors and 0 warnings when it passes. `method/R-C4-…`
+   SOFT findings mean the notation is incomplete (the message names the
+   element or acronym): fix the content, or waive with a reason
+   (`references/authoring-contract.md`). `[viewport/fit]` means the view will
+   scroll at 1440×900: split it or hide shared relationships.
+6. Deliver once the model is frozen (one HTML per view into a folder), then
    collect browser evidence for each view:
 
    ```bash
@@ -80,23 +104,26 @@ value (C4 calls it optional). When the request is ambiguous, run
    node bin/c4ify.mjs visual-check <output-dir>/<view-key>.html --json
    ```
 
-   `visual-check` must report containment pass. Look at the PNG screenshots
-   it writes (light and dark) before claiming a visual review; if you cannot
-   view images, say so.
+   `visual-check` takes one to three minutes per view; give it a long timeout
+   or run it in the background. It must report containment pass. Look at the
+   PNG screenshots it writes (light and dark) before claiming a visual review;
+   if you cannot view images, say so.
 
 ## What the renderer does for you
 
 - **Views from one model**: default element selection per view, boundary of
   the scope, implied relationships lifted and merged with a count.
-- **Layout from semantics**: people on top, stores and queues in the last
-  boundary row, called systems beside the boundary, automatic left-to-right
-  flow for deep views, orthogonal routes, labels placed where no other arrow
-  runs, spacing grown automatically when needed.
+- **Layout search**: people on top, stores and queues in the last boundary
+  row, called systems beside the boundary, shared services between the two
+  hubs that use them; it tries top-down and left-to-right, 4 to 8 elements per
+  row, two box widths and growing spacing, and keeps the first layout that
+  passes every gate and fits the screen.
 - **Notation by construction**: titles "System Context diagram for X", a key
-  of exactly what is drawn, `[Type: Technology]` on every box, cylinders for
+  of exactly what is drawn, the acronyms the view uses (from `meta.glossary`)
+  printed under the key, `[Type: Technology]` on every box, cylinders for
   stores, dashed arrows for async, a ⊕ badge on elements with a deeper view.
-- **Navigation**: a bar linking every view; double-click (or Shift+Enter) on
-  an element opens its next level.
+- **Navigation**: a bar linking every view (by `label`, else type and scope);
+  double-click (or Shift+Enter) on an element opens its next level.
 - **Viewer**: themes, presets, pan/zoom, search, focus, Semantic Lens, guided
   views (`views[].chapters`), presentation mode, PNG/JPEG/WebP/SVG/WebM export
   (`references/viewer-runtime.md` only when asked).

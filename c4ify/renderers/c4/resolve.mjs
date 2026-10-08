@@ -111,7 +111,12 @@ export function resolveView(index, view) {
   }
   for (const id of view.exclude || []) visible.delete(id);
 
-  const relationships = liftRelationships(index, new Set(visible.keys()));
+  // exclude_relationships hides arrows as drawn (after lifting), e.g. every
+  // service's call to a shared config or tracing server: { from: "*", to: "config" }.
+  const hidden = view.exclude_relationships || [];
+  const matches = (pattern, id) => pattern === '*' || pattern === id;
+  const relationships = liftRelationships(index, new Set(visible.keys()))
+    .filter((relationship) => !hidden.some((rule) => matches(rule.from, relationship.from) && matches(rule.to, relationship.to)));
   return {
     elements: [...visible.values()],
     core: core.filter((element) => visible.has(element.id)),
