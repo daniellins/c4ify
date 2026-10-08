@@ -1,5 +1,5 @@
 name: Feature request
-description: An improvement to an existing type, the viewer or the CLI
+description: An improvement to an existing view type, the layout, the viewer or the CLI
 labels: ["enhancement"]
 body:
   - type: textarea

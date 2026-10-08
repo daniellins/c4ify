@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "diagram_type": "c4",
+  "meta": {
+    "title": "Loja On-line",
+    "subtitle": "Modelo C4 da plataforma de vendas: do panorama aos contêineres.",
+    "locale": "pt-BR",
+    "quality_profile": "showcase",
+    "glossary": {
+      "ERP": "Sistema integrado de gestão empresarial (Enterprise Resource Planning)"
+    }
+  },
+  "model": {
+    "enterprise": "Varejo Exemplo S.A.",
+    "elements": [
+      { "id": "cliente", "type": "person", "name": "Cliente", "description": "Compra produtos e acompanha os próprios pedidos pela loja on-line." },
+      { "id": "atendente", "type": "person", "name": "Atendente", "description": "Acompanha pedidos e responde às dúvidas dos clientes." },
+      { "id": "loja", "type": "softwareSystem", "name": "Loja On-line", "description": "Permite navegar no catálogo, comprar e acompanhar pedidos." },
+      { "id": "spa", "type": "container", "parent": "loja", "name": "Aplicação Web", "technology": "React", "description": "Interface de compra que roda no navegador do cliente." },
+      { "id": "painel", "type": "container", "parent": "loja", "name": "Painel de Atendimento", "technology": "Next.js", "description": "Interface interna para consultar e ajustar pedidos." },
+      { "id": "api", "type": "container", "parent": "loja", "name": "API da Loja", "technology": "Node.js, Fastify", "description": "Expõe catálogo, carrinho e pedidos para as interfaces." },
+      { "id": "processador", "type": "container", "parent": "loja", "name": "Processador de Pedidos", "technology": "Node.js", "description": "Confirma pagamentos, registra vendas e avisa o cliente." },
+      { "id": "fila", "type": "container", "parent": "loja", "name": "Fila de Pedidos", "technology": "RabbitMQ", "description": "Desacopla a confirmação do pedido do seu processamento." },
+      { "id": "banco", "type": "container", "parent": "loja", "name": "Banco de Dados", "technology": "PostgreSQL", "shape": "database", "description": "Guarda catálogo, clientes, pedidos e pagamentos." },
+      { "id": "pagamentos", "type": "softwareSystem", "external": true, "name": "Gateway de Pagamentos", "description": "Autoriza e captura pagamentos com cartão e Pix." },
+      { "id": "email", "type": "softwareSystem", "external": true, "name": "Serviço de E-mail", "description": "Entrega os e-mails transacionais aos clientes." },
+      { "id": "erp", "type": "softwareSystem", "name": "ERP", "description": "Controla estoque, faturamento e notas fiscais da empresa." }
+    ],
+    "relationships": [
+      { "from": "cliente", "to": "spa", "description": "Navega e compra usando", "technology": "HTTPS" },
+      { "from": "atendente", "to": "painel", "description": "Acompanha pedidos usando", "technology": "HTTPS" },
+      { "from": "spa", "to": "api", "description": "Consulta o catálogo e envia pedidos para", "technology": "JSON/HTTPS" },
+      { "from": "painel", "to": "api", "description": "Consulta e ajusta pedidos via", "technology": "JSON/HTTPS" },
+      { "from": "api", "to": "banco", "description": "Lê e grava dados em", "technology": "SQL/TCP" },
+      { "from": "api", "to": "fila", "description": "Publica pedidos confirmados em", "technology": "AMQP", "async": true },
+      { "from": "processador", "to": "fila", "description": "Consome pedidos de", "technology": "AMQP", "async": true },
+      { "from": "processador", "to": "api", "description": "Atualiza o status dos pedidos via", "technology": "JSON/HTTPS" },
+      { "from": "processador", "to": "pagamentos", "description": "Confirma pagamentos com", "technology": "JSON/HTTPS" },
+      { "from": "processador", "to": "email", "description": "Envia confirmações usando", "technology": "SMTP" },
+      { "from": "processador", "to": "erp", "description": "Registra vendas e solicita notas no", "technology": "JSON/HTTPS" }
+    ]
+  },
+  "views": [
+    { "key": "panorama", "type": "systemLandscape", "description": "Quem usa a loja e com quais sistemas ela conversa." },
+    { "key": "contexto", "type": "systemContext", "scope": "loja", "description": "A Loja On-line no centro, com usuários e sistemas vizinhos." },
+    { "key": "conteineres", "type": "container", "scope": "loja", "description": "Aplicações e armazenamentos que compõem a Loja On-line." }
+  ]
+}

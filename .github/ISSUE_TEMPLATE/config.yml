@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Question or idea
-    url: https://github.com/daniellins/bizify/discussions
+    url: https://github.com/daniellins/c4ify/discussions
     about: Ask questions and share diagrams in Discussions.
-  - name: Architecture, sequence, data-flow or state diagrams
+  - name: Generic architecture, sequence, data-flow or state diagrams
     url: https://github.com/tt-a1i/archify
-    about: Those belong to Archify, the project Bizify was forked from.
+    about: Free-form architecture diagrams belong to Archify, the project c4ify descends from.
+  - name: Business diagrams (WBS, BPMN, VSM, impact map, story map, SIPOC)
+    url: https://github.com/daniellins/bizify
+    about: Those belong to bizify, the project c4ify was forked from.

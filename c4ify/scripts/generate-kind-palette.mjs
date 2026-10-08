@@ -12,10 +12,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const templatePath = path.join(root, 'assets/template.html');
-const TYPES = ['wbs', 'bpmn', 'vsm', 'impactmap', 'storymap', 'sipoc'];
+const TYPES = ['c4'];
 const SLOTS = new Set(['frontend', 'backend', 'database', 'cloud', 'security', 'messagebus', 'external']);
-const START = '    /* BIZIFY:KIND_PALETTE_START */';
-const END = '    /* BIZIFY:KIND_PALETTE_END */';
+const START = '    /* C4IFY:KIND_PALETTE_START */';
+const END = '    /* C4IFY:KIND_PALETTE_END */';
 
 const bySlot = new Map([...SLOTS].map((slot) => [slot, new Set()]));
 for (const type of TYPES) {

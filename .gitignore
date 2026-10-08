@@ -5,6 +5,7 @@ Thumbs.db
 # rendered artifacts and visual-check output
 *.visual-check.*
 out/
-bizify-demo/
+c4ify-demo/
+*-c4/
 # local packages
 *.skill

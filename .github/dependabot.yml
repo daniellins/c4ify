@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: /bizify
+    directory: /c4ify
     schedule:
       interval: monthly
   - package-ecosystem: github-actions

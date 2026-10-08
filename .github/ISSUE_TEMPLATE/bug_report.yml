@@ -1,12 +1,12 @@
 name: Bug report
-description: Wrong layout, crash, wrong number or a rule that misfires
+description: Wrong layout, crash, wrong view content or a rule that misfires
 labels: ["bug", "triage"]
 body:
   - type: dropdown
-    id: type
+    id: area
     attributes:
-      label: Diagram type
-      options: [wbs, bpmn, vsm, impactmap, storymap, sipoc, viewer / CLI]
+      label: Area
+      options: [systemLandscape view, systemContext view, container view, component view, drill-down / navigation, rules / validation, viewer / CLI]
     validations:
       required: true
   - type: textarea
@@ -18,8 +18,8 @@ body:
   - type: textarea
     id: spec
     attributes:
-      label: Minimal JSON spec
-      description: The smallest spec that reproduces the problem.
+      label: Minimal model JSON
+      description: The smallest *.c4.json model that reproduces the problem, and the view key.
       render: json
     validations:
       required: true
@@ -27,7 +27,7 @@ body:
     id: command
     attributes:
       label: Command and output
-      description: e.g. `node bin/bizify.mjs validate wbs spec.json --quality showcase --json`
+      description: e.g. `node bin/c4ify.mjs validate c4 model.c4.json --view containers --quality showcase --json`
       render: shell
   - type: textarea
     id: screenshot
@@ -37,4 +37,4 @@ body:
     id: env
     attributes:
       label: Environment
-      placeholder: "bizify 0.1.0 · Node 22 · Windows 11 · Chrome 130"
+      placeholder: "c4ify 0.1.0 · Node 22 · Windows 11 · Chrome 130"

@@ -1,10 +1,10 @@
 <div align="center">
 
-# Bizify
+# c4ify
 
-**Diagramas de negócio para projetos de tecnologia — validados pelo método, exploráveis em HTML.**
+**Diagramas do modelo C4 que seguem a notação: validados, navegáveis por níveis, exploráveis em HTML.**
 
-EAP / WBS · BPMN 2.0 · Mapa do Fluxo de Valor · Mapa de Impacto · Mapa de Histórias · SIPOC
+Panorama de Sistemas · Contexto do Sistema · Contêineres · Componentes
 
 [English](README.md) · [Documentação](docs/) · [Como contribuir](CONTRIBUTING.md)
 
@@ -12,69 +12,109 @@ EAP / WBS · BPMN 2.0 · Mapa do Fluxo de Valor · Mapa de Impacto · Mapa de Hi
 
 ---
 
-O Bizify é uma **Agent Skill** (Claude Code e agentes compatíveis) que transforma uma pergunta de
-negócio numa especificação JSON tipada, calcula o layout e **os números**, aplica as regras do
-método e entrega um único HTML interativo, com tema claro/escuro, estilos visuais, zoom, busca,
-foco, visões guiadas, modo apresentação e exportação PNG/SVG/WebM.
+O c4ify é uma **Agent Skill** (Claude Code e agentes compatíveis) que gera diagramas do
+[modelo C4](https://c4model.com). Você descreve o sistema uma única vez, num modelo JSON com
+pessoas, sistemas de software, contêineres, componentes e relacionamentos; o c4ify confere o modelo
+contra a notação C4 e entrega **um HTML interativo e autônomo por visão** (SVG embutido, tema claro
+e escuro, zoom, busca, foco, visões guiadas, modo apresentação e exportação PNG/SVG/WebM), com links
+entre as visões para descer do panorama até os componentes.
 
-> **O Bizify é um fork do [Archify](https://github.com/tt-a1i/archify), de [tt-a1i](https://github.com/tt-a1i).**
-> O Archify é uma skill excelente para diagramas de *arquitetura de software*. O Bizify mantém o
-> visualizador, o pipeline de entrega e os portões de qualidade do Archify e troca o conhecimento de
-> arquitetura pelos **diagramas de negócio** que um projeto de tecnologia precisa: escopo, processo,
-> fluxo e planejamento. Para arquitetura, sequência, fluxo de dados ou estados, use o Archify.
+> **O c4ify é um fork do [bizify](https://github.com/daniellins/bizify)**, que por sua vez é um
+> fork do **[Archify](https://github.com/tt-a1i/archify)**, de [tt-a1i](https://github.com/tt-a1i).
+> Ele mantém o visualizador, o roteamento e os portões de entrega do Archify e o motor de regras de
+> método do bizify, e acrescenta o modelo C4. Para diagramas livres de arquitetura, sequência ou
+> fluxo de dados, use o Archify; para diagramas de negócio (EAP, BPMN, VSM…), use o bizify.
 
-## O que ele gera
-
-| Tipo | Pergunta que responde | Fontes |
-|---|---|---|
-| `wbs` (EAP) | O que o projeto entrega, e isso cobre 100% do escopo? | PMI, PMBOK, NASA, GAO, MIL-STD-881F |
-| `bpmn` | Quem faz o quê, em que ordem, com quais decisões e passagens de bastão? | OMG BPMN 2.0.2, Silver, Camunda |
-| `vsm` (MFV) | Onde o trabalho espera e quanto do lead time agrega valor? | Rother & Shook, Martin & Osterling |
-| `impactmap` | Quais entregas movem o objetivo, pelo comportamento de quem? | Adzic |
-| `storymap` | Qual é a menor release de ponta a ponta que entrega o resultado? | Patton |
-| `sipoc` | Onde o processo começa e termina, quem o alimenta e quem recebe? | ASQ, Lean Six Sigma |
+As capturas de tela chegam com a primeira versão. Até lá, `node bin/c4ify.mjs demo` gera os
+exemplos localmente.
 
 ## Por que usar
 
-- **O método é o produto:** cerca de 100 regras com id (`R-WBS-08`), nível e fonte citada.
-- **Regras HARD recusam** a especificação (duas raízes, filhos que não somam o pai, total do VSM
-  que não bate com o calculado); **regras SOFT** viram avisos que bloqueiam o perfil `showcase` até
-  serem corrigidos ou dispensados com um motivo explícito.
-- **Números calculados:** somas da EAP, lead time, eficiência do fluxo, %C&A acumulado, takt.
-- **Semântica em vez de coordenadas:** você descreve pais, raias, ordem e métricas; o layout sai sozinho.
-- **Interface em português:** `meta.locale: "pt-BR"` traduz controles, legenda, cartões e números.
+- **O método é o produto:** treze regras (`R-C4-01` a `R-C4-13`) parafraseadas da orientação de
+  notação e do checklist de revisão do c4model.com, cada uma com nível e fonte.
+- **Regras HARD recusam o modelo:** contêiner fora de um sistema de software, visão cujo escopo não
+  combina com o tipo, relacionamento sem descrição, seta de um contêiner para o próprio sistema.
+- **Regras SOFT viram avisos:** elemento sem descrição ou tecnologia, chamada entre contêineres sem
+  protocolo, sigla sem explicação, verbo vago ("usa"), visão lotada. No perfil `showcase` elas
+  bloqueiam a entrega até serem corrigidas ou **dispensadas com um motivo explícito**.
+- **Títulos e legenda gerados:** cada visão diz o que é ("Diagrama de contêineres de Loja
+  On-line") e explica formas, cores e estilos de linha.
+- **Semântica em vez de coordenadas:** layout, roteamento ortogonal e posição dos rótulos são
+  automáticos; `placement` e `routes` servem só para corrigir um diagnóstico.
+- **Interface em português:** `meta.locale: "pt-BR"` traduz controles, títulos, legenda e mensagens
+  das regras.
+
+## Um modelo, várias visões
+
+Como no [Structurizr](https://structurizr.com), o modelo guarda cada elemento e relacionamento uma
+única vez, e cada visão faz uma pergunta a ele num nível de abstração:
+
+| Tipo de visão | Escopo | Mostra |
+|---|---|---|
+| `systemLandscape` | nenhum | todas as pessoas e sistemas de software |
+| `systemContext` | um sistema de software | o sistema, seus usuários e os sistemas com que conversa |
+| `container` | um sistema de software | seus contêineres dentro de uma fronteira tracejada, mais pessoas e sistemas externos |
+| `component` | um contêiner | seus componentes, mais contêineres vizinhos, pessoas e sistemas externos |
+
+**Relacionamentos implícitos:** descreva os relacionamentos entre os elementos mais detalhados que
+você conhece. Cada visão os eleva ao nível que desenha (componente → componente vira contêiner →
+contêiner numa visão de contêineres) e junta os repetidos com uma contagem.
+
+**Navegação por níveis:** a entrega de um modelo grava `<chave-da-visão>.html` para cada visão numa
+pasta. Uma barra de navegação liga todas as visões, e o clique duplo num elemento marcado com ⊕ (ou
+Shift+Enter) abre o nível seguinte: panorama → contexto → contêineres → componentes.
 
 ## Instalação
 
 ```bash
-npx -y skills add daniellins/bizify --skill bizify --agent claude-code --global --copy --yes
-node ~/.claude/skills/bizify/bin/bizify.mjs doctor    # → "Bizify is ready."
+npx -y skills add daniellins/c4ify --skill c4ify --agent claude-code --global --copy --yes
+node ~/.claude/skills/c4ify/bin/c4ify.mjs doctor    # → "c4ify is ready."
 ```
 
-Ou copie a pasta [`bizify/`](bizify/) para `~/.claude/skills/bizify`. Requer Node.js 18+.
+Ou copie a pasta [`c4ify/`](c4ify/) para `~/.claude/skills/c4ify`. Requer Node.js 18+.
 
 ## Uso
 
 Peça em linguagem natural:
 
 ```text
-"Monte a EAP do projeto VisionQC com as horas por pacote de trabalho"
-"Modele em BPMN o processo AS-IS de requisição de compras, com o fornecedor como piscina externa"
-"Mapeie o fluxo de valor atual do atendimento de incidentes; trabalhamos 8 h por dia"
-"Crie o SIPOC do processo de release mensal do app"
+"Monte os diagramas C4 de contexto e de contêineres da nossa loja on-line"
+"Modele este repositório em C4: contêineres e os componentes da API"
+"Crie o panorama de sistemas da empresa com os sistemas internos e externos"
 ```
 
-Veja a galeria, a arquitetura e os detalhes no [README em inglês](README.md) e em [docs/](docs/).
+Ou use a CLI:
+
+```bash
+node bin/c4ify.mjs validate c4 examples/online-store.c4.json --quality showcase
+node bin/c4ify.mjs deliver  c4 examples/online-store.c4.json saida/loja --quality showcase
+node bin/c4ify.mjs deliver  c4 examples/online-store.c4.json saida/contexto.html --view contexto
+```
+
+As regras, a CLI completa e o exemplo mínimo estão no [README em inglês](README.md) e em
+[docs/](docs/).
+
+## Planos
+
+Importar do Structurizr (exportação JSON e, depois, um subconjunto documentado da DSL) e, em
+seguida, visões de implantação e dinâmicas. Veja o [ROADMAP.md](ROADMAP.md).
 
 ## Origem e agradecimentos
 
-O Bizify existe porque o **[Archify](https://github.com/tt-a1i/archify)** existe. O Archify, criado
-por **[tt-a1i](https://github.com/tt-a1i)**, construiu as partes difíceis: o visualizador
-autônomo, o pipeline de entrega determinístico, as checagens de geometria e composição e o sistema
-de exportação. O Bizify partiu do **Archify 2.17.0-dev.1** (setembro de 2026), removeu os
-renderizadores de arquitetura e acrescentou seis renderizadores de negócio, as regras de método, os
-avisos com dispensa justificada, as métricas calculadas e o idioma pt-BR. Obrigado, tt-a1i.
+- O **[Archify](https://github.com/tt-a1i/archify)**, criado por **[tt-a1i](https://github.com/tt-a1i)**,
+  construiu as partes difíceis: o visualizador autônomo, o pipeline de entrega determinístico, as
+  checagens de geometria e composição, a exportação e o roteador ortogonal que o c4ify reaproveita.
+- O **[bizify](https://github.com/daniellins/bizify)** contribuiu o motor de regras (HARD/SOFT,
+  avisos e dispensas), o idioma pt-BR e a estrutura do repositório. O c4ify partiu do commit
+  `7e174b9`.
+- O **[modelo C4](https://c4model.com)** foi criado por **Simon Brown**; as regras do c4ify
+  parafraseiam a orientação de notação e o checklist de revisão (CC BY 4.0).
+- O **[Structurizr](https://structurizr.com)** inspirou a organização "um modelo, várias visões" e
+  os relacionamentos implícitos.
+
+Atribuição completa: [NOTICE.md](NOTICE.md).
 
 ## Licença
 
-[MIT](LICENSE) © 2026 Daniel Lins, preservando os avisos de copyright originais do Archify e da Cocoon AI.
+[MIT](LICENSE) © 2026 Daniel Lins, preservando os avisos de copyright do bizify, do Archify e da
+Cocoon AI.

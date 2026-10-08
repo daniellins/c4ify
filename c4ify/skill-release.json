@@ -1,14 +1,21 @@
 {
   "schemaVersion": 1,
-  "skillId": "bizify",
+  "skillId": "c4ify",
   "channel": "stable",
   "version": "0.1.0",
   "source": {
-    "repository": "https://github.com/daniellins/bizify"
+    "repository": "https://github.com/daniellins/c4ify"
   },
-  "forkedFrom": {
-    "skillId": "archify",
-    "version": "2.17.0-dev.1",
-    "repository": "https://github.com/tt-a1i/archify"
-  }
+  "forkedFrom": [
+    {
+      "skillId": "bizify",
+      "repository": "https://github.com/daniellins/bizify",
+      "commit": "7e174b9"
+    },
+    {
+      "skillId": "archify",
+      "version": "2.17.0-dev.1",
+      "repository": "https://github.com/tt-a1i/archify"
+    }
+  ]
 }

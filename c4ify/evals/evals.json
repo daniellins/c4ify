@@ -1,55 +1,49 @@
 {
-  "skill_name": "bizify",
+  "skill_name": "c4ify",
   "evals": [
     {
       "id": 1,
-      "name": "eap-pdi-roll-up",
-      "prompt": "Preciso da EAP do projeto de P&D \"VisionQC\" (inspeção visual por IA numa linha de montagem, 10 meses) para o plano de trabalho. Entregas: gestão do projeto (plano e relatórios mensais 90h, relatório final 60h); base de imagens (coleta em linha 160h, rotulagem 240h); modelo de detecção (treinamento v1 320h, otimização para edge 180h — essa ainda sem detalhamento, é da segunda onda); sistema embarcado (firmware da câmera 200h, integração com o CLP 150h, testes de campo 120h). O gerente disse que o total é 1.600h. Gere o diagrama interativo em HTML.",
-      "expected_output": "An interactive HTML WBS with one root, project management at level 2, deliverables as nouns, work packages as leaves, edge optimization as a planning package, computed roll-up (1,520 h), and the discrepancy with the manager's 1,600 h reported instead of silently absorbed.",
+      "name": "contexto-e-conteineres-pt",
+      "prompt": "Preciso dos diagramas C4 (contexto e contêineres) da plataforma de agendamento \"ConsultaFácil\" para a proposta. Pacientes marcam consultas pelo app (React Native) e as clínicas gerenciam a agenda num painel web (Angular). Os dois falam com uma API em .NET 8 via REST, que grava no SQL Server e publica eventos de agendamento numa fila Azure Service Bus. Um worker em .NET consome a fila e envia lembretes por WhatsApp usando a API da Twilio e cobra a taxa de reserva pelo gateway da Stone. O login dos pacientes é feito pelo Azure AD B2C. Gere o HTML interativo.",
+      "expected_output": "One c4 model (pt-BR) with a systemContext and a container view of ConsultaFácil, delivered as two linked HTML files that validate in showcase: people Paciente and Clínica; containers app, painel, API, worker, banco (cylinder) and fila with their technologies; Twilio, Stone and Azure AD B2C as external systems; relationships with intent and protocol; the queue relationships async; acronyms explained in meta.glossary.",
       "files": [],
       "assertions": [
-        "Output is a standalone HTML file that renders an SVG diagram",
-        "Exactly one root element for VisionQC",
-        "Project management appears as a level-2 element",
-        "Every leaf carries its given hours and parents show roll-ups",
-        "The total shown equals 1.520 h (sum of the packages)",
-        "The response tells the user the stated 1.600 h does not match the 1.520 h sum",
-        "The edge-optimization package is marked as a planning package (rolling wave) or equivalent",
-        "Portuguese text keeps full accents (Gestão, Relatório, Integração)"
+        "Output is a folder with one standalone HTML per view (context and containers) that render SVG diagrams",
+        "The context view title names the diagram type and the system (e.g. 'Diagrama de contexto do sistema ConsultaFácil')",
+        "Every container shows its technology in the box ([Contêiner: …])",
+        "Twilio, Stone and Azure AD B2C are drawn as external systems (grey) and not as containers",
+        "Relationships between containers carry a protocol (REST/HTTPS, SQL, AMQP or similar)",
+        "The worker's relationship with the queue is shown as asynchronous (dashed)",
+        "Double-clicking the system in the context view opens the container view",
+        "Validation reports 0 errors and 0 warnings in both views, or every remaining waiver has an explicit reason"
       ]
     },
     {
       "id": 2,
-      "name": "bpmn-purchase-approval",
-      "prompt": "Modele em BPMN o processo AS-IS de requisição de compras: o solicitante preenche a requisição no ERP; o gestor da área aprova ou reprova (se reprovar, volta pro solicitante ajustar); acima de R$ 10 mil também passa pela diretoria financeira; aprovada, Compras faz cotação com fornecedores (o fornecedor é externo e responde a cotação por e-mail) e emite o pedido. Se a cotação não voltar em 3 dias úteis, Compras cobra o fornecedor. Quero um HTML interativo para apresentar ao cliente.",
-      "expected_output": "A BPMN 2.0 diagram with a pool for the company (lanes: Solicitante, Gestor, Diretoria Financeira, Compras) and a separate black-box pool for the supplier, message flows only between pools, exclusive gateways with labelled outcomes (aprovado/reprovado, acima de 10 mil), a rework loop, a timer (3 dias úteis) for the follow-up, start and named end events.",
+      "name": "component-view-en",
+      "prompt": "Add a C4 component diagram for our Orders Service (Kotlin, Spring Boot) to the architecture: it has an OrdersController (Spring MVC) that calls a PricingService and an OrderRepository (Spring Data JPA, PostgreSQL), and an OutboxPublisher that pushes OrderPlaced events to Kafka. The web shop (Next.js) calls the controller over JSON/HTTPS. Produce the context, container and component views.",
+      "expected_output": "One c4 model with context, container and component views; components authored with parent = the Orders Service container and relationships authored between components; the container view shows the lifted relationships (web shop → Orders Service, Orders Service → database, Orders Service → Kafka) without duplicates; Kafka modelled as a container or external system with technology; the component view scoped to the Orders Service.",
       "files": [],
       "assertions": [
-        "Output is a standalone HTML file that renders an SVG diagram",
-        "Supplier is a separate pool (not a lane of the company pool)",
-        "Interaction with the supplier uses message flows (dashed), not sequence flows",
-        "There are lanes for the requester, area manager, finance board and purchasing",
-        "Exclusive gateway outcomes are labelled (approve/reject and the R$ 10 mil threshold)",
-        "The rework loop back to the requester is present",
-        "A timer event models the 3-business-day follow-up",
-        "Tasks use verb + object labels in Portuguese with accents"
+        "There are three linked HTML views: context, containers and components",
+        "The component view shows OrdersController, PricingService, OrderRepository and OutboxPublisher inside the Orders Service boundary",
+        "The container view shows Web Shop → Orders Service once, even though the relationship was authored to a component",
+        "In-process relationships between components are not forced to declare a protocol",
+        "Relationships that cross container boundaries declare a technology",
+        "The response does not invent technologies that were not given"
       ]
     },
     {
       "id": 3,
-      "name": "vsm-support-office",
-      "prompt": "Mapeie o fluxo de valor atual do nosso atendimento de incidentes de TI (estado atual). Etapas: registro no portal (PT 10 min, LT 2 h, %C&A 60%), triagem N1 (PT 20 min, LT 1 dia, %C&A 80%), diagnóstico N2 (PT 2 h, LT 3 dias, %C&A 70%), correção (PT 3 h, LT 2 dias, %C&A 90%), validação com o usuário (PT 15 min, LT 1 dia, %C&A 95%). Trabalhamos 8 h por dia. Quero ver o lead time total, a eficiência do fluxo e o %C&A acumulado num HTML interativo.",
-      "expected_output": "An office-variant VSM with five process blocks, a timeline ladder, and computed totals: LT 7.25 days (58 h), PT 5.75 h, activity ratio ~9.9%, rolled %C&A ~28.7%.",
+      "name": "missing-facts-pending",
+      "prompt": "Draw a C4 context diagram for our HR portal. Employees and managers use it; it pulls salaries from the payroll system and sends approvals to the ERP. I don't know how it talks to payroll yet.",
+      "expected_output": "A c4 model with a systemContext view of the HR portal: two people, the portal, Payroll and ERP (ERP explained in meta.glossary); because only a context view is requested no protocol is required, and the unknown integration detail is reported back to the user as an open question instead of being invented.",
       "files": [],
       "assertions": [
-        "Output is a standalone HTML file that renders an SVG diagram",
-        "Five process blocks in the given order, each showing PT, LT and %C&A",
-        "A timeline ladder (lead time vs process time) is drawn",
-        "Total process time is 5,75 h (or 345 min)",
-        "Total lead time is 58 h / 7,25 days (2 h counted as 0,25 day)",
-        "Activity ratio / flow efficiency is about 9,9%",
-        "Rolled %C&A is about 28,7%",
-        "Customer (usuário) and trigger are represented"
+        "The context view shows Employee, Manager, HR Portal, Payroll and ERP",
+        "Every relationship has an intent label (no bare 'uses')",
+        "ERP is explained in the acronyms card",
+        "The response lists the unknown payroll integration as an open question and does not invent a protocol"
       ]
     }
   ]

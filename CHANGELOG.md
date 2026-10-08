@@ -6,38 +6,36 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-### Changed
-- CI actions updated to `actions/checkout@v7` and `actions/setup-node@v7` (Node 20 runtime deprecation).
-- Brand marks regenerated from Simple Icons 16.32.0 (no icon changed; version label and notices only).
+## [0.1.0] - 2026-10-08
 
-### Removed
-- Unused dev dependencies `parse5` and `saxes`, inherited from Archify's browser tests.
-
-## [0.1.0] — 2026-09-24
-
-First public release. Forked from [Archify](https://github.com/tt-a1i/archify) 2.17.0-dev.1.
+First public release. Forked from
+[bizify](https://github.com/daniellins/bizify) at commit `7e174b9` (itself a fork of
+[Archify](https://github.com/tt-a1i/archify) 2.17.0-dev.1).
 
 ### Added
-- Six business diagram types with schemas, renderers, examples, authoring guides and theory
-  references: `wbs` (WBS / EAP), `bpmn` (BPMN 2.0, descriptive+ palette), `vsm` (office/software and
-  manufacturing), `impactmap`, `storymap`, `sipoc`.
-- ~100 method rules (`R-WBS-*`, `R-BPMN-*`, `R-VSM-*`, `R-IMP-*`, `R-USM-*`, `R-SIPOC-*`), HARD or
-  SOFT, each traced to graded sources.
-- Methodology advisories in the artifact checker; SOFT findings block the `showcase` profile unless
-  waived with a reason (`meta.waivers`).
-- Computed metrics: WBS roll-up with reference-total variance; VSM lead time, process time,
-  activity ratio, rolled %C&A, takt and inventory days.
-- WBS: hybrid and tree layouts, codes, control accounts, planning packages, dictionary, sublabels,
-  group coloring, unnumbered root, up to 10 level-2 columns in `standard`.
-- BPMN: pools and lanes, black-box pools, events with triggers, boundary events, gateways, message
-  flows, data objects/stores, compact auto-layout that preserves authored lane order.
-- Brazilian Portuguese (`pt-BR`) viewer locale.
-- `bizify guide` business scenario recipes (EN/PT), `doctor` checks per type, first-screen aspect
-  fitting and a 70-test `node:test` suite.
+- C4 model input: one `*.c4.json` file (`diagram_type: "c4"`, `schemas/c4.schema.json`) with
+  `model.elements` (person, softwareSystem, container, component; `parent`, `external`,
+  `technology`, `description`, `shape: database|queue`, `brand`), `model.relationships`
+  (`description`, `technology`, `async`) and `views[]`.
+- Four view types: `systemLandscape`, `systemContext`, `container`, `component`, with `scope`,
+  `include` / `exclude`, `layout` (`direction`, `max_per_row`, `element_width`, `gap_x`, `gap_y`),
+  `placement`, `routes` and guided `chapters`.
+- View resolver with implied relationships: relationships between low-level elements are lifted to
+  the level each view draws and merged with a count.
+- Automatic layout: people on top, scope inside a dashed boundary, stores and queues in the last
+  boundary row, called systems in a side column, left-to-right for deep views; label placement
+  search with automatic spacing growth.
+- Orthogonal relationship routing ported from Archify's architecture renderer.
+- Drill-down: `deliver` without `--view` writes one linked HTML per view (`<view-key>.html`) and
+  returns `{ ok, directory, entry, views }`; a navigation bar links the views and ⊕ elements open
+  the next level on double-click or Shift+Enter.
+- Rules R-C4-01..05 (HARD) and R-C4-06..13 (SOFT), paraphrased from the c4model.com notation
+  guidance and review checklist (CC BY 4.0); generated view titles and key; `meta.glossary` card.
+- English and Brazilian Portuguese (`meta.locale: "pt-BR"`) viewer, titles and messages.
+- Example models and a `node:test` suite for the resolver, layout and renderer.
 
-### Removed (relative to Archify)
-- Architecture, workflow, sequence, data-flow and lifecycle renderers; architecture compare/delta;
-  workflow migration; upstream update checker; Simplified Chinese viewer locale.
+### Removed (relative to bizify)
+- The six business diagram types (WBS, BPMN, VSM, impact map, story map, SIPOC), their schemas,
+  references, examples and gallery.
 
-[Unreleased]: https://github.com/daniellins/bizify/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/daniellins/bizify/releases/tag/v0.1.0
+[Unreleased]: https://github.com/daniellins/c4ify/commits/main

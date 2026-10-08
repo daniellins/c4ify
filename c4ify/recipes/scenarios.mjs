@@ -1,153 +1,112 @@
-// Scenario recipes for `bizify guide`: pick the business question first, then
-// the diagram type. Signals are weighted substrings (EN + PT-BR, accent-free
-// variants included because users type both).
+// Scenario recipes for `c4ify guide`: pick the reader's question first, then
+// the C4 view. Signals are weighted substrings (EN + PT-BR, accent-free
+// variants included because users type both). `type` is the view type the
+// recipe recommends; every recipe still means one model with several views.
 
 const RAW_RECIPES = [
   {
-    id: 'scope-baseline', type: 'wbs', proof: 'rd-project',
+    id: 'c4-model', type: 'systemContext+container', proof: 'online-store',
+    presentation: { preset: 'classic', motion: 'static', views: 'one per level' },
+    signals: [['c4 model', 16], ['modelo c4', 16], ['c4', 10], ['structurizr', 12], ['simon brown', 12], ['arquitetura de software', 8], ['software architecture', 8], ['documentar a arquitetura', 10], ['document the architecture', 10], ['drill', 6], ['niveis', 6], ['níveis', 6], ['levels', 6]],
+    en: {
+      title: 'C4 model (context and containers, with drill-down)', question: 'What is the system, who uses it, and which applications and data stores is it made of?',
+      summary: 'One model with a System Context view and a Container view, linked by drill-down.',
+      useWhen: 'Architecture documentation, onboarding, solution proposals, design reviews.',
+      avoidWhen: 'The question is a business process (use bizify BPMN) or a request sequence (use archify sequence).',
+      include: ['people and external systems around the scope', 'every container with technology', 'relationship intent plus protocol', 'acronyms in meta.glossary'],
+      prompt: 'Use c4ify to model this system in C4: one model with the people, the software system and its containers (each with technology and a one-line responsibility), external systems marked external, and relationships described by intent with the protocol as technology; add a systemContext view and a container view of the system.',
+    },
+    pt: {
+      title: 'Modelo C4 (contexto e contêineres, com detalhamento)', question: 'O que é o sistema, quem o usa e de quais aplicações e armazenamentos ele é feito?',
+      summary: 'Um modelo com a visão de contexto e a de contêineres, ligadas por clique duplo.',
+      useWhen: 'Documentação de arquitetura, onboarding, propostas de solução, revisões de design.',
+      avoidWhen: 'Quando a pergunta é um processo de negócio (use o BPMN do bizify) ou uma sequência de chamadas (use o sequence do archify).',
+      include: ['pessoas e sistemas externos ao redor do escopo', 'cada contêiner com tecnologia', 'intenção da relação e protocolo', 'siglas em meta.glossary'],
+      prompt: 'Use o c4ify para modelar este sistema em C4: um modelo com as pessoas, o sistema de software e seus contêineres (cada um com tecnologia e uma frase de responsabilidade), sistemas externos marcados como externos e relações descritas pela intenção, com o protocolo como tecnologia; crie uma visão systemContext e uma visão container do sistema.',
+    },
+  },
+  {
+    id: 'system-landscape', type: 'systemLandscape', proof: 'online-store',
     presentation: { preset: 'classic', motion: 'static', views: 'optional' },
-    signals: [['wbs', 16], ['work breakdown', 16], ['eap', 16], ['estrutura analitica', 16], ['estrutura analítica', 16], ['work package', 10], ['pacote de trabalho', 10], ['escopo', 6], ['scope', 6], ['entregas', 5], ['deliverables', 5], ['dicionario da eap', 12], ['dicionário da eap', 12]],
+    signals: [['landscape', 14], ['panorama', 14], ['mapa de sistemas', 14], ['todos os sistemas', 10], ['all systems', 10], ['enterprise', 6], ['portfolio de sistemas', 10], ['portfólio de sistemas', 10], ['ecossistema', 8], ['ecosystem', 8]],
     en: {
-      title: 'Scope baseline (WBS)', question: 'What exactly will the project deliver, and how does 100% of the scope break down?',
-      summary: 'A deliverable-oriented tree with codes, work packages, owners and rolled-up effort/cost.',
-      useWhen: 'Proposals, R&D work plans, kick-offs, scope sign-off, cost roll-up review.',
-      avoidWhen: 'The audience needs sequence or dates (use a schedule) or a process (use BPMN).',
-      include: ['one root', 'project management at level 2', 'deliverables as nouns', 'work packages as leaves', 'effort on leaves only'],
-      prompt: 'Use bizify to draw the project WBS: one root, level 2 = major deliverables plus project management, decompose until each leaf is an estimable work package with one owner; put effort on leaves only and let bizify roll it up.',
+      title: 'System landscape', question: 'Which systems does the organisation run, and who uses each one?',
+      summary: 'Every person and software system of the enterprise, with the relationships between them.',
+      useWhen: 'IT portfolio overviews, integration maps, the entry page of an architecture repository.',
+      avoidWhen: 'The reader needs one system in detail (use a context view).',
+      include: ['model.enterprise', 'internal vs. external systems', 'one relationship per real integration'],
+      prompt: 'Use c4ify to draw a system landscape: set model.enterprise, add every person and software system (external ones marked external) with the integrations between them, and a systemLandscape view; add a systemContext view for the systems readers will open.',
     },
     pt: {
-      title: 'Linha de base do escopo (EAP)', question: 'O que exatamente o projeto entrega e como 100% do escopo se decompõe?',
-      summary: 'Árvore orientada a entregas, com códigos, pacotes de trabalho, responsáveis e esforço/custo consolidados.',
-      useWhen: 'Propostas, planos de trabalho de P&D, kick-off, aceite de escopo e revisão de custos.',
-      avoidWhen: 'Quando o público precisa de sequência ou datas (use cronograma) ou de um processo (use BPMN).',
-      include: ['uma raiz', 'gestão do projeto no nível 2', 'entregas como substantivos', 'pacotes de trabalho nas folhas', 'esforço só nas folhas'],
-      prompt: 'Use o bizify para desenhar a EAP do projeto: uma raiz, nível 2 com as grandes entregas e a gestão do projeto, decomponha até cada folha ser um pacote de trabalho estimável com um responsável; informe o esforço só nas folhas e deixe o bizify consolidar.',
+      title: 'Panorama de sistemas', question: 'Quais sistemas a organização opera e quem usa cada um?',
+      summary: 'Todas as pessoas e sistemas de software da empresa, com as relações entre eles.',
+      useWhen: 'Visão do portfólio de TI, mapas de integração, página de entrada de um repositório de arquitetura.',
+      avoidWhen: 'Quando o leitor precisa de um sistema em detalhe (use a visão de contexto).',
+      include: ['model.enterprise', 'sistemas internos e externos', 'uma relação por integração real'],
+      prompt: 'Use o c4ify para desenhar o panorama de sistemas: defina model.enterprise, inclua todas as pessoas e sistemas de software (os externos marcados como externos) com as integrações entre eles e uma visão systemLandscape; acrescente visões systemContext para os sistemas que o leitor vai abrir.',
     },
   },
   {
-    id: 'process-as-is-to-be', type: 'bpmn', proof: 'support-ticket',
-    presentation: { preset: 'classic', motion: 'trace', views: 'recommended' },
-    signals: [['bpmn', 18], ['business process', 12], ['processo de negocio', 12], ['processo de negócio', 12], ['as-is', 10], ['to-be', 10], ['as is', 8], ['to be', 6], ['swimlane', 9], ['raia', 9], ['piscina', 9], ['pool', 6], ['gateway', 8], ['fluxo do processo', 10], ['process flow', 10], ['aprovacao', 5], ['aprovação', 5], ['handoff', 6]],
-    en: {
-      title: 'Business process (BPMN AS-IS / TO-BE)', question: 'Who does what, in which order, with which decisions and hand-offs?',
-      summary: 'A BPMN 2.0 process with pools, lanes, events, tasks, gateways and message flows.',
-      useWhen: 'Process discovery, requirements for automation, AS-IS pain analysis, TO-BE redesign, SLA hand-offs.',
-      avoidWhen: 'The question is waste and lead time (use VSM) or only scope boundaries (use SIPOC).',
-      include: ['one start and named end states', 'lanes by role', 'labelled gateway conditions', 'message flows only between pools', 'happy path on one row'],
-      prompt: 'Use bizify to model this process in BPMN 2.0 (descriptive level): pools for each participant (external ones as black boxes), lanes by role, verb-object task names, labelled exclusive-gateway outcomes, balanced parallel splits and joins, and message flows only between pools.',
-    },
-    pt: {
-      title: 'Processo de negócio (BPMN AS-IS / TO-BE)', question: 'Quem faz o quê, em que ordem, com quais decisões e passagens de bastão?',
-      summary: 'Processo BPMN 2.0 com piscinas, raias, eventos, tarefas, gateways e fluxos de mensagem.',
-      useWhen: 'Levantamento de processos, requisitos de automação, análise AS-IS, redesenho TO-BE, SLAs entre áreas.',
-      avoidWhen: 'Quando a pergunta é desperdício e lead time (use VSM) ou só o escopo do processo (use SIPOC).',
-      include: ['um início e fins nomeados', 'raias por papel', 'condições dos gateways rotuladas', 'fluxo de mensagem só entre piscinas', 'caminho feliz em uma linha'],
-      prompt: 'Use o bizify para modelar este processo em BPMN 2.0 (nível descritivo): uma piscina por participante (externos como caixa-preta), raias por papel, tarefas no formato verbo + objeto, saídas dos gateways exclusivos rotuladas, paralelos com divisão e junção balanceadas e fluxos de mensagem só entre piscinas.',
-    },
-  },
-  {
-    id: 'value-stream-delivery', type: 'vsm', proof: 'software-delivery',
-    presentation: { preset: 'classic', motion: 'trace', views: 'recommended' },
-    signals: [['value stream', 16], ['fluxo de valor', 16], ['vsm', 18], ['mfv', 16], ['lead time', 10], ['flow efficiency', 10], ['eficiencia de fluxo', 10], ['eficiência de fluxo', 10], ['desperdicio', 8], ['desperdício', 8], ['waste', 8], ['gargalo', 6], ['bottleneck', 6], ['entrega de software', 8], ['software delivery', 8], ['idea to production', 8], ['ideia ate producao', 8]],
-    en: {
-      title: 'Value stream (office / software delivery)', question: 'Where does work wait, and how much of the lead time adds value?',
-      summary: 'A current- or future-state value stream with process time, lead time, %C&A, queues and computed flow efficiency.',
-      useWhen: 'Delivery-pipeline improvement, DevOps assessments, service operations, before/after kaizen.',
-      avoidWhen: 'You need task-level logic and decisions (use BPMN) or the scope is still unclear (start with SIPOC).',
-      include: ['one product family / request type', 'customer and trigger', '5–12 process blocks', 'PT, LT and %C&A per block', 'work hours per day'],
-      prompt: 'Use bizify to draw the current-state value stream (office variant) for one request type from trigger to customer: process blocks with process time, lead time and %C&A, queues between them, information flows, and let bizify compute total lead time, activity ratio and rolled %C&A.',
-    },
-    pt: {
-      title: 'Fluxo de valor (escritório / entrega de software)', question: 'Onde o trabalho espera e quanto do lead time agrega valor?',
-      summary: 'Mapa do fluxo de valor atual ou futuro com tempo de processo, lead time, %C&A, filas e eficiência de fluxo calculada.',
-      useWhen: 'Melhoria do pipeline de entrega, diagnósticos DevOps, operações de serviço, antes/depois de kaizen.',
-      avoidWhen: 'Quando precisa da lógica e das decisões de cada tarefa (use BPMN) ou o escopo ainda não está claro (comece pelo SIPOC).',
-      include: ['uma família de produto / tipo de demanda', 'cliente e gatilho', '5 a 12 blocos de processo', 'PT, LT e %C&A por bloco', 'horas de trabalho por dia'],
-      prompt: 'Use o bizify para desenhar o fluxo de valor atual (variante escritório) de um tipo de demanda, do gatilho ao cliente: blocos de processo com tempo de processo, lead time e %C&A, filas entre eles e fluxos de informação; deixe o bizify calcular o lead time total, a razão de atividade e o %C&A acumulado.',
-    },
-  },
-  {
-    id: 'value-stream-manufacturing', type: 'vsm', proof: 'machining-cell',
+    id: 'system-context', type: 'systemContext', proof: 'online-store',
     presentation: { preset: 'classic', motion: 'static', views: 'optional' },
-    signals: [['takt', 14], ['tempo de ciclo', 10], ['cycle time', 10], ['changeover', 8], ['setup', 5], ['estoque', 7], ['inventory', 7], ['supermercado', 9], ['supermarket', 9], ['kanban', 8], ['chao de fabrica', 10], ['chão de fábrica', 10], ['shop floor', 10], ['linha de producao', 9], ['linha de produção', 9], ['manufatura', 8], ['manufacturing', 8]],
+    signals: [['context diagram', 16], ['diagrama de contexto', 16], ['system context', 16], ['contexto do sistema', 14], ['visao geral', 6], ['visão geral', 6], ['big picture', 8], ['quem usa', 8], ['who uses', 8], ['integracoes', 6], ['integrações', 6], ['stakeholders', 6], ['executivo', 6], ['executive', 6]],
     en: {
-      title: 'Value stream (manufacturing)', question: 'Does the flow meet takt, and where does inventory pile up?',
-      summary: 'A Learning-to-See value stream with data boxes, inventory triangles, push/pull, takt and the timeline ladder.',
-      useWhen: 'Plant or cell improvement, lean assessments, future-state design with supermarkets and pacemaker.',
-      avoidWhen: 'Knowledge work without physical inventory (use the office variant).',
-      include: ['customer demand and available time', 'C/T, C/O, uptime per process', 'inventory between processes', 'push vs pull', 'one pacemaker in the future state'],
-      prompt: 'Use bizify to draw the manufacturing value stream (current state) for one product family: supplier, processes with data boxes, inventories, customer demand, information flows from production control, and let bizify compute takt, inventory days and the lead-time ladder.',
+      title: 'System context', question: 'Who uses the system and which other systems does it depend on?',
+      summary: 'The system as one box, with its users and neighbouring systems.',
+      useWhen: 'Executive and non-technical audiences, the first page of a proposal, scoping a project.',
+      avoidWhen: 'The reader asks how the system is built (add a container view).',
+      include: ['the scope system', 'every user role', 'external systems marked external', 'what flows between them'],
+      prompt: 'Use c4ify to draw the system context: people (roles, not individuals), the software system in scope and the systems it talks to (mark the ones outside the organisation as external), relationships described by intent; one systemContext view scoped to the system.',
     },
     pt: {
-      title: 'Fluxo de valor (manufatura)', question: 'O fluxo atende ao takt e onde o estoque se acumula?',
-      summary: 'Mapa no padrão Aprendendo a Enxergar, com caixas de dados, triângulos de estoque, empurrado/puxado, takt e linha do tempo.',
-      useWhen: 'Melhoria de fábrica ou célula, diagnóstico lean, estado futuro com supermercados e processo puxador.',
-      avoidWhen: 'Trabalho do conhecimento sem estoque físico (use a variante escritório).',
-      include: ['demanda do cliente e tempo disponível', 'T/C, TR e disponibilidade por processo', 'estoque entre processos', 'empurrado x puxado', 'um processo puxador no estado futuro'],
-      prompt: 'Use o bizify para desenhar o fluxo de valor de manufatura (estado atual) de uma família de produtos: fornecedor, processos com caixas de dados, estoques, demanda do cliente, fluxos de informação do PCP; deixe o bizify calcular takt, dias de estoque e a linha do tempo de lead time.',
+      title: 'Contexto do sistema', question: 'Quem usa o sistema e de quais outros sistemas ele depende?',
+      summary: 'O sistema como uma caixa, com seus usuários e sistemas vizinhos.',
+      useWhen: 'Públicos executivos e não técnicos, primeira página de uma proposta, delimitação de escopo.',
+      avoidWhen: 'Quando o leitor pergunta como o sistema é construído (inclua a visão de contêineres).',
+      include: ['o sistema em escopo', 'cada papel de usuário', 'sistemas externos marcados como externos', 'o que circula entre eles'],
+      prompt: 'Use o c4ify para desenhar o contexto do sistema: pessoas (papéis, não indivíduos), o sistema de software em escopo e os sistemas com que ele conversa (os de fora da organização marcados como externos), relações descritas pela intenção; uma visão systemContext com o sistema como escopo.',
     },
   },
   {
-    id: 'impact-roadmap', type: 'impactmap', proof: 'mobile-payments',
+    id: 'containers', type: 'container', proof: 'online-store',
     presentation: { preset: 'classic', motion: 'static', views: 'recommended' },
-    signals: [['impact map', 18], ['mapa de impacto', 18], ['impact mapping', 18], ['goal', 4], ['objetivo de negocio', 10], ['objetivo de negócio', 10], ['por que construir', 8], ['why', 3], ['okr', 6], ['metrica de negocio', 8], ['métrica de negócio', 8], ['atores', 5], ['actors', 5], ['priorizar entregas', 7]],
+    signals: [['container diagram', 16], ['diagrama de conteineres', 16], ['diagrama de contêineres', 16], ['conteineres', 10], ['contêineres', 10], ['containers', 10], ['microservices', 10], ['microsservicos', 10], ['microsserviços', 10], ['deployable', 8], ['banco de dados', 4], ['database', 4], ['fila', 4], ['queue', 4], ['api', 3], ['frontend', 3], ['backend', 3]],
     en: {
-      title: 'Impact map (why → who → how → what)', question: 'Which deliverables actually move the business goal, through whose behaviour?',
-      summary: 'A four-level map from a measurable goal to actors, behaviour-change impacts and candidate deliverables, with the chosen path highlighted.',
-      useWhen: 'Product discovery, roadmap framing, scoping an MVP, aligning stakeholders on value.',
-      avoidWhen: 'Scope is already fixed and the question is decomposition (use WBS) or release slicing (use a story map).',
-      include: ['one measurable goal (baseline, target, deadline)', 'specific actors', 'impacts as behaviour changes', 'deliverables as options', 'one selected path'],
-      prompt: 'Use bizify to build an impact map: one measurable goal with baseline, target and deadline; specific actors; impacts written as behaviour changes; deliverables as options under each impact; mark the shortest path worth testing first.',
+      title: 'Containers', question: 'Which applications and data stores make up the system, and how do they talk?',
+      summary: 'The system boundary with its containers, the people who use them and the systems they call.',
+      useWhen: 'Technical design reviews, onboarding developers and operators, solution architecture in proposals.',
+      avoidWhen: 'The reader needs classes or modules inside one container (use a component view).',
+      include: ['each container with technology', 'stores with shape "database"', 'protocol on every inter-container arrow', 'async messaging marked async'],
+      prompt: 'Use c4ify to draw the containers of this system: each separately runnable or deployable unit (web app, API, worker, database, queue) as a container with technology and responsibility, relationships with intent and protocol (async: true for messaging), external systems called by containers; one container view scoped to the system.',
     },
     pt: {
-      title: 'Mapa de impacto (por quê → quem → como → o quê)', question: 'Quais entregas realmente movem o objetivo de negócio, por meio do comportamento de quem?',
-      summary: 'Mapa de quatro níveis do objetivo mensurável aos atores, aos impactos (mudanças de comportamento) e às entregas candidatas, com o caminho escolhido em destaque.',
-      useWhen: 'Descoberta de produto, enquadramento de roadmap, definição de MVP, alinhamento de valor com stakeholders.',
-      avoidWhen: 'Quando o escopo já está fechado e a pergunta é decomposição (use EAP) ou fatiamento de releases (use story map).',
-      include: ['um objetivo mensurável (linha de base, meta, prazo)', 'atores específicos', 'impactos como mudança de comportamento', 'entregas como opções', 'um caminho escolhido'],
-      prompt: 'Use o bizify para montar um mapa de impacto: um objetivo mensurável com linha de base, meta e prazo; atores específicos; impactos escritos como mudança de comportamento; entregas como opções sob cada impacto; marque o caminho mais curto que vale testar primeiro.',
+      title: 'Contêineres', question: 'Quais aplicações e armazenamentos compõem o sistema e como eles se comunicam?',
+      summary: 'A fronteira do sistema com seus contêineres, as pessoas que os usam e os sistemas que eles chamam.',
+      useWhen: 'Revisões de design técnico, onboarding de desenvolvedores e operação, arquitetura da solução em propostas.',
+      avoidWhen: 'Quando o leitor precisa dos módulos dentro de um contêiner (use a visão de componentes).',
+      include: ['cada contêiner com tecnologia', 'bancos com shape "database"', 'protocolo em toda seta entre contêineres', 'mensageria marcada como async'],
+      prompt: 'Use o c4ify para desenhar os contêineres deste sistema: cada unidade executável ou implantável separadamente (aplicação web, API, worker, banco, fila) como contêiner com tecnologia e responsabilidade, relações com intenção e protocolo (async: true para mensageria) e os sistemas externos chamados pelos contêineres; uma visão container com o sistema como escopo.',
     },
   },
   {
-    id: 'release-planning', type: 'storymap', proof: 'saas-onboarding',
+    id: 'components', type: 'component', proof: 'library-lending',
     presentation: { preset: 'classic', motion: 'static', views: 'recommended' },
-    signals: [['story map', 18], ['user story map', 18], ['mapa de historias', 16], ['mapa de histórias', 16], ['backbone', 10], ['walking skeleton', 12], ['mvp', 8], ['release', 6], ['fatia', 6], ['slice', 6], ['backlog', 6], ['jornada do usuario', 7], ['jornada do usuário', 7], ['user journey', 7]],
+    signals: [['component diagram', 16], ['diagrama de componentes', 16], ['componentes', 10], ['components', 10], ['modulos', 8], ['módulos', 8], ['modules', 8], ['camadas', 6], ['layers', 6], ['controller', 6], ['repository', 6], ['repositorio', 6], ['repositório', 6], ['servicos internos', 8], ['serviços internos', 8]],
     en: {
-      title: 'User story map (release slices)', question: 'What is the smallest end-to-end release that delivers the outcome?',
-      summary: 'A backbone of user activities and steps with stories below, sliced into releases with explicit outcomes.',
-      useWhen: 'MVP definition, release planning, backlog shaping, onboarding a team to the product narrative.',
-      avoidWhen: 'You need effort/cost structure (use WBS) or a system process (use BPMN).',
-      include: ['activities in narrative order', 'steps under each activity', 'stories by priority', 'release slices with outcomes', 'first slice spans the backbone'],
-      prompt: 'Use bizify to build a user story map: the backbone of user activities and steps in narrative order, stories under each step ordered by priority, and horizontal release slices each with an outcome; make the first slice a walking skeleton across the whole backbone.',
+      title: 'Components', question: 'How is one container structured inside, and which component handles what?',
+      summary: 'The container boundary with its components, plus the containers and systems they use.',
+      useWhen: 'Code reviews, refactoring plans, onboarding to one service.',
+      avoidWhen: 'The container is small or the code is the clearer documentation; C4 calls this level optional.',
+      include: ['components with technology (framework role)', 'relationships authored between components', 'the containers and systems they reach'],
+      prompt: 'Use c4ify to add a component view: model the container\'s main components (controllers, services, repositories, adapters) with technology and responsibility, author relationships between components and to other containers/systems (c4ify lifts them for the higher views), and add a component view scoped to the container.',
     },
     pt: {
-      title: 'Mapa de histórias (fatias de release)', question: 'Qual é a menor release de ponta a ponta que entrega o resultado?',
-      summary: 'Backbone de atividades e passos do usuário com histórias abaixo, fatiado em releases com resultados explícitos.',
-      useWhen: 'Definição de MVP, planejamento de releases, organização do backlog, alinhamento do time com a narrativa do produto.',
-      avoidWhen: 'Quando precisa da estrutura de esforço e custo (use EAP) ou de um processo sistêmico (use BPMN).',
-      include: ['atividades em ordem narrativa', 'passos sob cada atividade', 'histórias por prioridade', 'fatias de release com resultados', 'a primeira fatia cobre todo o backbone'],
-      prompt: 'Use o bizify para montar um mapa de histórias: backbone de atividades e passos do usuário em ordem narrativa, histórias sob cada passo ordenadas por prioridade e fatias horizontais de release, cada uma com um resultado; faça da primeira fatia um esqueleto funcional que atravessa todo o backbone.',
-    },
-  },
-  {
-    id: 'process-scoping', type: 'sipoc', proof: 'release-management',
-    presentation: { preset: 'classic', motion: 'static', views: 'optional' },
-    signals: [['sipoc', 18], ['copis', 16], ['fornecedores entradas', 12], ['suppliers inputs', 12], ['six sigma', 8], ['seis sigma', 8], ['dmaic', 10], ['escopo do processo', 10], ['process scope', 10], ['ctq', 8], ['fronteira do processo', 8], ['process boundary', 8]],
-    en: {
-      title: 'Process scope (SIPOC)', question: 'Where does the process start and end, and who feeds and receives it?',
-      summary: 'Suppliers, inputs, 4–7 high-level steps, outputs with CTQ requirements, and customers.',
-      useWhen: 'DMAIC Define, kick-off of process work, agreeing boundaries before BPMN or VSM.',
-      avoidWhen: 'You already need decisions and hand-offs (use BPMN) or timings (use VSM).',
-      include: ['start trigger and end boundary', '4–7 verb-noun steps', 'every input with a supplier', 'every output with a customer', 'CTQ per key output'],
-      prompt: 'Use bizify to build a SIPOC: agree the start trigger and end boundary, list 4–7 high-level steps, then outputs with their CTQ requirements and customers, and inputs with their suppliers.',
-    },
-    pt: {
-      title: 'Escopo do processo (SIPOC)', question: 'Onde o processo começa e termina, e quem o alimenta e recebe?',
-      summary: 'Fornecedores, entradas, 4 a 7 etapas de alto nível, saídas com requisitos CTQ e clientes.',
-      useWhen: 'Fase Define do DMAIC, abertura de trabalho em processos, acordo de fronteiras antes de BPMN ou VSM.',
-      avoidWhen: 'Quando já precisa de decisões e passagens de bastão (use BPMN) ou de tempos (use VSM).',
-      include: ['gatilho de início e fronteira de fim', '4 a 7 etapas verbo + substantivo', 'toda entrada com fornecedor', 'toda saída com cliente', 'CTQ nas saídas-chave'],
-      prompt: 'Use o bizify para montar um SIPOC: combine o gatilho de início e a fronteira de fim, liste de 4 a 7 etapas de alto nível e depois as saídas com seus requisitos CTQ e clientes, e as entradas com seus fornecedores.',
+      title: 'Componentes', question: 'Como um contêiner se organiza por dentro e qual componente cuida de quê?',
+      summary: 'A fronteira do contêiner com seus componentes e os contêineres e sistemas que eles usam.',
+      useWhen: 'Revisões de código, planos de refatoração, onboarding em um serviço.',
+      avoidWhen: 'Quando o contêiner é pequeno ou o código já documenta melhor; o C4 trata este nível como opcional.',
+      include: ['componentes com tecnologia (papel no framework)', 'relações escritas entre componentes', 'os contêineres e sistemas que eles alcançam'],
+      prompt: 'Use o c4ify para acrescentar a visão de componentes: modele os principais componentes do contêiner (controllers, serviços, repositórios, adaptadores) com tecnologia e responsabilidade, escreva as relações entre componentes e com outros contêineres e sistemas (o c4ify as eleva para as visões de cima) e crie uma visão component com o contêiner como escopo.',
     },
   },
 ];
@@ -160,7 +119,7 @@ export const SCENARIO_RECIPES = Object.freeze(RAW_RECIPES.map((recipe) => Object
   pt: Object.freeze({ ...recipe.pt, include: Object.freeze(recipe.pt.include.slice()) }),
 })));
 
-const PT_HINT = /[ãõçáéíóúâêô]|\b(processo|fluxo|escopo|entrega|mapa|projeto|historias|histórias|fornecedor|cliente|valor)\b/iu;
+const PT_HINT = /[ãõçáéíóúâêô]|\b(sistema|sistemas|arquitetura|conteineres|componentes|usuarios|integracao|banco|fila|visao)\b/iu;
 
 export function detectGuideLanguage(value = '') {
   return PT_HINT.test(value) ? 'pt' : 'en';
@@ -226,11 +185,11 @@ export function recommendScenario(query, options = {}) {
 export function formatScenarioList(lang = 'en') {
   const isPt = lang === 'pt';
   const heading = isPt
-    ? `Receitas de cenário do Bizify (${SCENARIO_RECIPES.length})`
-    : `Bizify scenario recipes (${SCENARIO_RECIPES.length})`;
+    ? `Receitas de cenário do c4ify (${SCENARIO_RECIPES.length})`
+    : `c4ify scenario recipes (${SCENARIO_RECIPES.length})`;
   const intro = isPt
-    ? 'Escolha a pergunta antes do tipo de diagrama. Rode: bizify guide "seu cenário"'
-    : 'Choose the question before the diagram type. Run: bizify guide "your scenario"';
+    ? 'Escolha a pergunta antes do tipo de diagrama. Rode: c4ify guide "seu cenário"'
+    : 'Choose the question before the diagram type. Run: c4ify guide "your scenario"';
   return [heading, '', intro, '', ...listScenarioRecipes(lang).flatMap((recipe) => [
     `${recipe.id}  [${recipe.type}]  ${recipe.title}`,
     `  ${recipe.question}`,

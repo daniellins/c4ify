@@ -1,16 +1,16 @@
 <div align="center">
 
-# Bizify
+# c4ify
 
-**Business diagrams for technology projects — validated by method, explorable as HTML.**
+**C4 model diagrams that follow the notation: validated, drillable, explorable as HTML.**
 
-WBS / EAP · BPMN 2.0 · Value Stream Maps · Impact Maps · User Story Maps · SIPOC
+System Landscape · System Context · Container · Component
 
-[![CI](https://github.com/daniellins/bizify/actions/workflows/ci.yml/badge.svg)](https://github.com/daniellins/bizify/actions/workflows/ci.yml)
+[![CI](https://github.com/daniellins/c4ify/actions/workflows/ci.yml/badge.svg)](https://github.com/daniellins/c4ify/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Node](https://img.shields.io/badge/node-%E2%89%A518-green)
 ![Agent Skill](https://img.shields.io/badge/Agent%20Skill-Claude%20Code-7c3aed)
-[![Fork of Archify](https://img.shields.io/badge/fork%20of-tt--a1i%2Farchify-555)](https://github.com/tt-a1i/archify)
+[![Fork of bizify](https://img.shields.io/badge/fork%20of-daniellins%2Fbizify-555)](https://github.com/daniellins/bizify)
 
 [Português](README.pt-BR.md) · [Documentation](docs/) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
 
@@ -18,64 +18,87 @@ WBS / EAP · BPMN 2.0 · Value Stream Maps · Impact Maps · User Story Maps · 
 
 ---
 
-Bizify is an **Agent Skill** (Claude Code and compatible agents) that turns a business question
-into a typed JSON spec, derives the layout, **computes the numbers**, enforces the rules of the
-underlying method and delivers one self-contained, interactive HTML file — with dark/light themes,
-visual presets, pan/zoom, search, focus, guided views, presentation mode and PNG/SVG/WebM export.
+c4ify is an **Agent Skill** (Claude Code and compatible agents) that renders
+[C4 model](https://c4model.com) diagrams. You describe a software system once, as one JSON model
+of people, software systems, containers, components and relationships; c4ify checks it against the
+C4 notation and delivers **one standalone, interactive HTML file per view** (inline SVG, dark/light
+themes, pan/zoom, search, focus, guided views, presentation mode and PNG/SVG/WebM export), linked
+together so you can drill from the landscape down to components.
 
-> **Bizify is a fork of [Archify](https://github.com/tt-a1i/archify) by [tt-a1i](https://github.com/tt-a1i).**
-> Archify is an excellent skill for *software architecture* diagrams. Bizify keeps Archify's viewer,
-> delivery pipeline and quality gates, and replaces the architecture knowledge with **business
-> diagrams** that technology projects need — scope, process, flow and planning. If you need
-> architecture, sequence, data-flow or state diagrams, use Archify. See [Origin and credits](#origin-and-credits).
+> **c4ify is a fork of [bizify](https://github.com/daniellins/bizify)**, itself a fork of
+> **[Archify](https://github.com/tt-a1i/archify)** by [tt-a1i](https://github.com/tt-a1i). It keeps
+> Archify's viewer, routing and delivery gates and bizify's method-rule engine, and adds the C4
+> model. For free-form architecture, sequence or data-flow diagrams use Archify; for business
+> diagrams (WBS, BPMN, VSM, …) use bizify. See [Origin and credits](#origin-and-credits).
 
-## Gallery
+Screenshots will be added with the first release. Meanwhile, `node bin/c4ify.mjs demo` renders the
+bundled examples locally.
 
-| WBS / EAP | BPMN 2.0 |
-|---|---|
-| ![WBS](docs/images/rd-project.wbs.png) | ![BPMN](docs/images/support-ticket.bpmn.png) |
-| **Value Stream Map (office / software)** | **Value Stream Map (manufacturing)** |
-| ![VSM office](docs/images/software-delivery.vsm.png) | ![VSM manufacturing](docs/images/machining-cell.vsm.png) |
-| **Impact Map** | **User Story Map** |
-| ![Impact map](docs/images/mobile-payments.impactmap.png) | ![Story map](docs/images/saas-onboarding.storymap.png) |
-| **SIPOC** | |
-| ![SIPOC](docs/images/release-management.sipoc.png) | |
+## Why c4ify
 
-Every image above is a screenshot of a generated HTML file from [`bizify/examples/`](bizify/examples/).
+Boxes and arrows are easy; a C4 diagram that a reviewer can trust is not. c4ify encodes the
+notation, so **a model that validates follows C4**:
 
-## Why Bizify
+- **The method is the product.** Thirteen rules (`R-C4-01` … `R-C4-13`) paraphrased from the
+  c4model.com notation guidance and review checklist, each with a level and a source.
+- **HARD rules refuse the model:** a container outside a software system, a view whose scope does
+  not match its type, an unlabelled relationship, an arrow from a container to its own system.
+- **SOFT rules become advisories:** missing descriptions or technologies, protocol-less
+  inter-container calls, unexplained acronyms, vague verbs ("uses"), crowded views. In the
+  `showcase` profile they block delivery until fixed or **waived with an explicit reason**.
+- **Titles and the key are generated**, so every view says what it is ("Container diagram for
+  Online Store") and explains its shapes, colours and line styles.
+- **Semantics, not coordinates.** Layout, orthogonal routing and label placement are automatic;
+  `placement` and `routes` exist only to repair a named diagnostic.
+- **Bilingual viewer.** English by default; `meta.locale: "pt-BR"` localizes the UI, titles, key
+  and rule messages.
 
-Drawing a business diagram is easy; drawing one that survives a PMO, a client or an R&D reviewer
-is not. Bizify encodes the method, so a diagram that passes is also **methodologically defensible**:
+## One model, many views
 
-- **The method is the product.** ~100 rules researched from the primary sources (PMI, NASA, GAO,
-  MIL-STD-881F, OMG BPMN 2.0.2, Rother & Shook, Martin & Osterling, Adzic, Patton, ASQ), each with
-  an id such as `R-WBS-08`, a level and a citation in [`bizify/references/`](bizify/references/).
-- **HARD rules refuse the spec** (two WBS roots, children that don't sum to their parent, a sequence
-  flow crossing pools, a VSM total that disagrees with the computed one).
-- **SOFT rules become advisories** (verb-named WBS elements, unlabelled gateway branches, a release
-  slice without an outcome). In the `showcase` profile they block delivery until fixed or **waived
-  with an explicit reason** — waivers stay visible in the receipt.
-- **Numbers are computed, never trusted.** WBS roll-ups (Σ), VSM lead time, process time, activity
-  ratio, rolled %C&A, takt and inventory days are calculated and cross-checked against any authored total.
-- **Semantics, not coordinates.** Authors describe parents, lanes, order, kinds and metrics; the
-  renderer places everything with orthogonal routes, masked labels and first-screen proportions.
-- **Bilingual viewer.** English by default; `meta.locale: "pt-BR"` localizes controls, legends,
-  summary cards and number formatting (the fork added Brazilian Portuguese).
+Following [Structurizr](https://structurizr.com)'s idea, the model holds every element and
+relationship once, and each view asks a question of it at one level of abstraction:
 
-## Diagram types
-
-| Type | Question it answers | Sources |
+| View type | Scope | Shows |
 |---|---|---|
-| `wbs` | What does the project deliver, and does it cover 100% of the scope? | PMI Practice Standard for WBS, PMBOK, NASA WBS Handbook, GAO-20-195G, MIL-STD-881F |
-| `bpmn` | Who does what, in which order, with which decisions and hand-offs? | OMG BPMN 2.0.2 (ISO/IEC 19510), Silver *Method & Style*, Camunda |
-| `vsm` | Where does work wait, and how much of the lead time adds value? | Rother & Shook *Learning to See*, Martin & Osterling, DevOps Handbook |
-| `impactmap` | Which deliverables move the business goal, through whose behaviour? | Adzic *Impact Mapping* |
-| `storymap` | What is the smallest end-to-end release that delivers the outcome? | Patton *User Story Mapping* |
-| `sipoc` | Where does the process start and end, who feeds and who receives it? | ASQ, Lean Six Sigma |
+| `systemLandscape` | none | every person and software system |
+| `systemContext` | a software system | the system, its users and the systems it talks to |
+| `container` | a software system | its containers inside a dashed boundary, plus outside people and systems |
+| `component` | a container | its components, plus sibling containers and outside people and systems |
 
-The methods chain naturally: impact map (why) → story map (what first) → WBS (scope baseline);
-SIPOC (scope a process) → BPMN (logic) → VSM (time and waste).
+**Implied relationships:** author relationships between the most detailed elements you know. Each
+view lifts them to the level it draws (component → component becomes container → container in a
+container view, system → system in a context view), merging duplicates with a count.
+
+**Automatic layout:** people on top, the scope in the middle (inside its boundary), stores and
+queues in the last boundary row, called systems in a side column; deep views switch to
+left-to-right. Labels are placed by a small search, and spacing grows automatically when a label
+has no free spot.
+
+**Drill-down:** delivering a model writes `<view-key>.html` for every view into one folder. A
+navigation bar links all views, and double-clicking an element marked ⊕ (or Shift+Enter) opens
+the next level: landscape → context → containers → components.
+
+## Rules
+
+| Id | Level | Rule |
+|---|---|---|
+| R-C4-01 | HARD | Hierarchy: a container lives in a software system, a component in a container; people and systems are top-level |
+| R-C4-02 | HARD | The view's scope matches its type (none for landscape, a system for context/container, a container for component) |
+| R-C4-03 | HARD | Every relationship has a description |
+| R-C4-04 | HARD | Relationships connect two distinct elements that are not nested in each other |
+| R-C4-05 | HARD | A container or component view zooms into something that has children |
+| R-C4-06 | SOFT | Every element has a description |
+| R-C4-07 | SOFT | Every container and component names its technology |
+| R-C4-08 | SOFT | Relationships between containers name their technology or protocol |
+| R-C4-09 | SOFT | Acronyms are explained (`meta.glossary`, shown as a card) |
+| R-C4-10 | SOFT | A view stays readable (about 20 elements at most) |
+| R-C4-11 | SOFT | Relationship descriptions say what happens, not just "uses" |
+| R-C4-12 | SOFT | Every element is drawn by at least one view |
+| R-C4-13 | SOFT | A context view shows its users or neighbouring systems |
+
+SOFT findings are warnings in `standard` and block `showcase` unless waived in `meta.waivers` with
+a reason. Sources and rationale: [docs/methodology.md](docs/methodology.md) and
+[c4ify/references/theory-c4.md](c4ify/references/theory-c4.md).
 
 ## Installation
 
@@ -85,107 +108,132 @@ only by `visual-check` for screenshots and containment evidence).
 **With the skills CLI** (Claude Code, global):
 
 ```bash
-npx -y skills add daniellins/bizify --skill bizify --agent claude-code --global --copy --yes
+npx -y skills add daniellins/c4ify --skill c4ify --agent claude-code --global --copy --yes
 ```
 
-**Manually:** copy the [`bizify/`](bizify/) folder to `~/.claude/skills/bizify` (user level) or
-`.claude/skills/bizify` (project level), then check it:
+**Manually:** copy the [`c4ify/`](c4ify/) folder to `~/.claude/skills/c4ify` (user level) or
+`.claude/skills/c4ify` (project level), then check it:
 
 ```bash
-node ~/.claude/skills/bizify/bin/bizify.mjs doctor    # → "Bizify is ready."
+node ~/.claude/skills/c4ify/bin/c4ify.mjs doctor    # → "c4ify is ready."
 ```
+
+More: [docs/installation.md](docs/installation.md).
 
 ## Quick start
 
-Ask your agent in plain language — the skill triggers on the business question:
+Ask your agent in plain language:
 
 ```text
-"Build the WBS for project VisionQC with the hours per work package"
-"Model our purchase-approval process in BPMN, AS-IS, with the supplier as an external pool"
-"Map the current value stream of our incident handling; we work 8 h per day"
-"Monte o mapa de impacto: queremos 30% mais lojistas ativos até março"
+"Draw the C4 system context and container diagrams for our online store"
+"Model this repository as C4: containers and the components of the API"
+"Monte o diagrama de contêineres C4 do sistema de empréstimos da biblioteca"
 ```
 
 Or drive the CLI directly:
 
 ```bash
-cd ~/.claude/skills/bizify
-node bin/bizify.mjs guide "where does our delivery wait?"          # recommends a type + prompt
-node bin/bizify.mjs validate wbs examples/rd-project.wbs.json --quality showcase --json
-node bin/bizify.mjs deliver  wbs examples/rd-project.wbs.json out/wbs.html --quality showcase
-node bin/bizify.mjs visual-check out/wbs.html --json                # browser evidence + PNGs
+cd ~/.claude/skills/c4ify
+node bin/c4ify.mjs validate c4 examples/online-store.c4.json --quality showcase
+node bin/c4ify.mjs deliver  c4 examples/online-store.c4.json out/online-store --quality showcase
+node bin/c4ify.mjs deliver  c4 examples/online-store.c4.json out/context.html --view contexto
+node bin/c4ify.mjs visual-check out/online-store/panorama.html --json
 ```
 
-A minimal WBS spec:
+A minimal model with two views:
 
 ```json
 {
   "schema_version": 1,
-  "diagram_type": "wbs",
-  "meta": { "title": "WBS — Customer Portal", "quality_profile": "showcase" },
-  "elements": [
-    { "id": "root", "label": "Customer Portal v1" },
-    { "id": "pm", "parent": "root", "label": "Project Management", "common": "project-management" },
-    { "id": "pm-plan", "parent": "pm", "label": "Project plan and status reports", "effort": 80 },
-    { "id": "pm-close", "parent": "pm", "label": "Closure report", "effort": 24 },
-    { "id": "app", "parent": "root", "label": "Web Application" },
-    { "id": "app-auth", "parent": "app", "label": "Authentication module", "effort": 120 },
-    { "id": "app-panel", "parent": "app", "label": "Customer dashboard", "effort": 200 }
+  "diagram_type": "c4",
+  "meta": { "title": "Internet Banking", "quality_profile": "showcase" },
+  "model": {
+    "elements": [
+      { "id": "customer", "type": "person", "name": "Customer", "description": "A customer of the bank." },
+      { "id": "bank", "type": "softwareSystem", "name": "Internet Banking", "description": "Lets customers view balances and make payments." },
+      { "id": "web", "type": "container", "parent": "bank", "name": "Web App", "technology": "React", "description": "Banking UI in the browser." },
+      { "id": "api", "type": "container", "parent": "bank", "name": "API", "technology": "Java, Spring Boot", "description": "Banking features over JSON/HTTPS." },
+      { "id": "db", "type": "container", "parent": "bank", "name": "Database", "technology": "PostgreSQL", "shape": "database", "description": "Stores accounts and transactions." }
+    ],
+    "relationships": [
+      { "from": "customer", "to": "web", "description": "Views balances and pays bills using", "technology": "HTTPS" },
+      { "from": "web", "to": "api", "description": "Fetches balances and submits payments via", "technology": "JSON/HTTPS" },
+      { "from": "api", "to": "db", "description": "Reads from and writes to", "technology": "SQL/TCP" }
+    ]
+  },
+  "views": [
+    { "key": "context", "type": "systemContext", "scope": "bank" },
+    { "key": "containers", "type": "container", "scope": "bank" }
   ]
 }
 ```
 
+## CLI
+
+| Command | Does |
+|---|---|
+| `validate c4 <model> [--view key] [--quality standard\|showcase] [--json]` | Schema, rules and composition gates for every view (or one) |
+| `deliver c4 <model> <output-dir>` | Atomic delivery of every view as `<view-key>.html`, with SHA-256 receipts |
+| `deliver c4 <model> <out.html> --view key` | One view into one file |
+| `preview c4 <model> [out.html] [--view key]` | Last-good live preview while editing |
+| `check <out.html>` / `visual-check <out.html>` | Artifact checks / browser evidence and screenshots |
+| `guide`, `brands`, `examples`, `doctor`, `demo` | Scenario recipes, brand-mark catalogue, examples, install check, demo set |
+
 ## How it works
 
 ```
-business question ─▶ typed JSON spec ─▶ schema (AJV, strict) ─▶ method rules (HARD / SOFT)
-        ─▶ layout from structure ─▶ inline SVG with semantic attributes ─▶ Archify viewer (HTML)
-        ─▶ artifact checks (9) ─▶ deliver (atomic, SHA-256 receipt) ─▶ visual-check (browser)
+model JSON ─▶ schema (AJV, strict) ─▶ HARD rules ─▶ resolve view (scope, implied relationships)
+   ─▶ SOFT advisories ─▶ layout ─▶ orthogonal routing ─▶ label placement ─▶ composition gates
+   ─▶ inline SVG ─▶ Archify viewer (HTML) ─▶ deliver one file per view (atomic, SHA-256)
 ```
 
 Details: [docs/architecture.md](docs/architecture.md) · [docs/methodology.md](docs/methodology.md) ·
-[docs/adding-a-diagram-type.md](docs/adding-a-diagram-type.md).
+[docs/adding-a-view-type.md](docs/adding-a-view-type.md).
 
 ## Repository layout
 
 ```
-bizify/                  the skill (what gets installed)
-  SKILL.md               agent instructions and type router
-  bin/                   CLI: validate, deliver, visual-check, guide, doctor, demo
-  renderers/<type>/      one renderer per diagram type + shared engine
-  schemas/               JSON Schemas (2020-12) per type
-  references/            theory-*.md (methods, rules, sources) and authoring-*.md guides
-  examples/              one validated example per type
+c4ify/                   the skill (what gets installed)
+  SKILL.md               agent instructions
+  bin/                   CLI: validate, deliver, preview, visual-check, guide, doctor, demo
+  renderers/c4/          resolver, layout, routing, labels, rules, SVG
+  renderers/shared/      engine inherited from Archify and bizify
+  schemas/               JSON Schemas (2020-12)
+  references/            theory-c4.md (notation, rules, sources), authoring and delivery guides
+  examples/              validated example models
   assets/template.html   the viewer inherited from Archify
   test/                  node:test suite
-docs/                    project documentation and gallery images
+docs/                    project documentation
 ```
+
+## Roadmap
+
+Import from Structurizr (JSON export, then a documented DSL subset), then deployment and dynamic
+views. See [ROADMAP.md](ROADMAP.md).
 
 ## Contributing
 
-Contributions are very welcome — new diagram types (Kanban board, RACI matrix, Gantt, OKR tree,
-Business Model Canvas, C4-for-business…), better layouts, rule corrections backed by sources,
-translations and examples. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the
-[roadmap](ROADMAP.md). Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome: layout and routing improvements, rule corrections backed by the C4
+sources, importers, translations and examples. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and
+follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Origin and credits
 
-Bizify exists because **[Archify](https://github.com/tt-a1i/archify)** exists. Archify, created by
-**[tt-a1i](https://github.com/tt-a1i)** (itself based on
-[Cocoon-AI/architecture-diagram-generator](https://github.com/Cocoon-AI/architecture-diagram-generator)),
-built the hard parts: the standalone viewer, the deterministic delivery pipeline, the geometry and
-composition checks, the export system and the brand-mark catalogue. Bizify forked
-**Archify 2.17.0-dev.1** in September 2026 and:
+- **[Archify](https://github.com/tt-a1i/archify)** by **[tt-a1i](https://github.com/tt-a1i)**
+  (based on [Cocoon-AI/architecture-diagram-generator](https://github.com/Cocoon-AI/architecture-diagram-generator))
+  built the hard parts: the standalone viewer, the deterministic delivery pipeline, the geometry
+  and composition gates, the export system, the brand-mark catalogue and the orthogonal router
+  that c4ify ports for its relationships.
+- **[bizify](https://github.com/daniellins/bizify)** contributed the method-rule engine (HARD/SOFT
+  rules, advisories, waivers), the Brazilian Portuguese locale and the repository scaffolding.
+  c4ify forked it at commit `7e174b9`.
+- **[The C4 model](https://c4model.com)** was created by **Simon Brown**. c4ify's rules paraphrase
+  its notation guidance and review checklist (CC BY 4.0).
+- **[Structurizr](https://structurizr.com)** inspired the "one model, many views" organization and
+  implied relationships.
 
-- removed the architecture, workflow, sequence, data-flow and lifecycle renderers;
-- added six business renderers, schemas and ~100 method rules with researched sources;
-- added methodology advisories, waivers and computed metrics to the quality gate;
-- added a Brazilian Portuguese viewer locale.
-
-Thank you, tt-a1i, for building Archify and releasing it under the MIT license. Improvements to the
-shared engine that are not business-specific are good candidates to offer upstream to Archify.
-Full attribution: [NOTICE.md](NOTICE.md) and [bizify/THIRD_PARTY_NOTICES.md](bizify/THIRD_PARTY_NOTICES.md).
+Full attribution: [NOTICE.md](NOTICE.md) and [c4ify/THIRD_PARTY_NOTICES.md](c4ify/THIRD_PARTY_NOTICES.md).
 
 ## License
 
-[MIT](LICENSE) © 2026 Daniel Lins, with the original Archify and Cocoon AI copyright notices preserved.
+[MIT](LICENSE) © 2026 Daniel Lins, with the bizify, Archify and Cocoon AI copyright notices preserved.

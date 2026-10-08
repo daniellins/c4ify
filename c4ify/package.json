@@ -1,12 +1,12 @@
 {
-  "name": "bizify",
+  "name": "c4ify",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "JSON-IR business diagram renderers (WBS / BPMN / VSM / impact map / story map / SIPOC), forked from Archify 2.17.0-dev.1.",
+  "description": "C4 model diagrams (system landscape, context, container, component) from one JSON model with many views, rendered as explorable standalone HTML; forked from bizify, a fork of Archify 2.17.0-dev.1.",
   "license": "MIT",
   "bin": {
-    "bizify": "./bin/bizify.mjs"
+    "c4ify": "./bin/c4ify.mjs"
   },
   "engines": {
     "node": ">=18"
@@ -30,8 +30,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/daniellins/bizify.git"
+    "url": "https://github.com/daniellins/c4ify.git"
   },
-  "homepage": "https://github.com/daniellins/bizify",
+  "homepage": "https://github.com/daniellins/c4ify",
   "author": "Daniel Lins"
 }

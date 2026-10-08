@@ -10,13 +10,42 @@ to that directory. A type mismatch fails before writing with
 accidental file-type overwrites; they do not sandbox explicit CLI directories
 or prevent replacement of an existing artifact of the expected type.
 
-Use final atomic delivery only after the candidate is frozen:
+Use final atomic delivery only after the candidate is frozen. A model has
+several views, so delivery has two forms:
 
 ```bash
-node bin/bizify.mjs deliver <type> <candidate.json> <output.html> --quality showcase --json
+# every view: one linked HTML per view, written into a directory
+node bin/c4ify.mjs deliver c4 <model.c4.json> <output-directory> --quality showcase --json
+
+# one view: a single HTML file
+node bin/c4ify.mjs deliver c4 <model.c4.json> <output.html> --view <key> --quality showcase --json
 ```
 
-Deliver reads the specification once, writes those exact bytes to a private same-directory candidate snapshot, renders that snapshot, runs the complete artifact checker, and only replaces the target after all artifact checks pass. The JSON receipt includes SHA-256 and byte counts for both `specification` and `artifact`. Renderer, checker, receipt, or commit failure exits non-zero, removes private state, preserves the previous trusted artifact, and never invokes an opener.
+Without `--view`, `deliver` runs the single-view delivery below once per view
+and writes `<view-key>.html` for each view into the directory (default
+`<model-name>-c4/` in the current directory; an `.html` target is refused). The
+files link to each other through the navigation bar and the drill-down
+targets, so keep them together. The JSON summary is:
+
+```json
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "deliver",
+  "type": "c4",
+  "input": "/abs/model.c4.json",
+  "directory": "/abs/output-directory",
+  "entry": "/abs/output-directory/<first-view-key>.html",
+  "views": [{ "view": "<key>", "ok": true, "output": "…", "specification": {}, "artifact": {}, "validation": {} }]
+}
+```
+
+`ok` is true only when every view delivered; each `views[]` entry is that
+view's full single-view receipt plus its `view` key. `entry` is the first view
+in `views[]` order. `validate` without `--view` likewise validates every view
+and returns `{ ok, views: [...] }`.
+
+For each view, deliver reads the model once, writes those exact bytes to a private same-directory candidate snapshot, renders that snapshot, runs the complete artifact checker, and only replaces the target after all artifact checks pass. The JSON receipt includes SHA-256 and byte counts for both `specification` and `artifact`. Renderer, checker, receipt, or commit failure exits non-zero, removes private state, preserves the previous trusted artifact, and never invokes an opener.
 
 Run `visual-check` only after `deliver` exits zero for the current candidate. If
 delivery fails and the output path already exists, that path still names the
@@ -35,10 +64,10 @@ Passing one claim never implies either of the others. Never claim that the deter
 ## Automated browser evidence
 
 After delivery, inspect the exact trusted HTML without rerendering or modifying
-it:
+it. Run it once per delivered view file:
 
 ```bash
-node bin/bizify.mjs visual-check <output.html> --json
+node bin/c4ify.mjs visual-check <output-directory>/<view-key>.html --json
 ```
 
 The zero-dependency command uses Chrome/Chromium through the DevTools pipe. It
@@ -73,7 +102,7 @@ Add `--open` only when the user wants an immediate local preview. It runs after 
 For an active desktop authoring loop only:
 
 ```bash
-node bin/bizify.mjs preview <type> <input>.json <output>.html --quality showcase
+node bin/c4ify.mjs preview c4 <model.c4.json> <output>.html --view <key> --quality showcase
 ```
 
 Preview watches one explicit input on loopback, binds each stable digest to a private snapshot, and advances only after the existing verified delivery pipeline passes. Invalid, half-written, deleted, or superseded input leaves the previous verified revision on screen and on disk. Identical bytes do not rebuild or reload.
@@ -92,9 +121,9 @@ A manual browser record is supplementary to the automated status. Reproducing th
 
 Report exactly one truthful status:
 
-- `visual_review: passed` — only after inspecting the rendered artifact.
-- `visual_review: skipped (image reader unavailable)` — when no capable visual surface exists.
-- `visual_review: failed` — with the concrete visible defect.
+- `visual_review: passed`: only after inspecting the rendered artifact.
+- `visual_review: skipped (image reader unavailable)`: when no capable visual surface exists.
+- `visual_review: failed`: with the concrete visible defect.
 
 Use `correction_rounds: 0`, `correction_rounds: 1`, or `correction_rounds: 2`; never exceed a maximum of two focused correction rounds. Never report `visual_review: passed` without inspecting the artifact.
 
@@ -105,16 +134,20 @@ If visual review changes the candidate, validation and delivery must run again b
 Return:
 
 ```text
-diagram_type: wbs|bpmn|vsm|impactmap|storymap|sipoc
-output: /absolute/path/to/file.html
+diagram_type: c4
+output: /absolute/path/to/output-directory (entry: <first-view-key>.html)
+views: <key> (<view type>), <key> (<view type>), …
 specification_sha256: <receipt value>
-artifact_sha256: <receipt value>
-validation: 9/9 showcase, 0 errors, 0 warnings
+artifact_sha256: <key>: <receipt value>, …
+validation: showcase, every view 0 errors, 0 warnings
 browser_evidence: passed|failed|skipped
 visual_review: passed|skipped (image reader unavailable)|failed
 correction_rounds: 0|1|2
-waivers: none | R-XXX-NN on <subject>: <reason>
+waivers: none | R-C4-NN on <subject>: <reason>
 ```
+
+For a single-view delivery, `output` is the HTML file and `views` lists that
+one view.
 
 Derive `browser_evidence` only from the latest artifact-bound `visual-check` receipt. Record any manual browser work separately with its artifact binding, viewport/theme scope, and observations; never use it or `visual_review` to overwrite the automated status.
 

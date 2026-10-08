@@ -1530,88 +1530,24 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .semantic-lens-kind[data-kind="security"],
     .semantic-lens-kind[data-kind="decision"],
     .semantic-lens-kind[data-kind="failure"] { --lens-color: var(--security-stroke); }
-    /* BIZIFY:KIND_PALETTE_START */
-    .overview-map-node[data-kind="deliverable"],
-    .overview-map-node[data-kind="impact-actor"],
-    .overview-map-node[data-kind="sipoc-input"],
-    .overview-map-node[data-kind="start-event"],
-    .overview-map-node[data-kind="story-activity"] { fill: var(--frontend-stroke); stroke: var(--frontend-stroke); }
-    .semantic-lens-kind[data-kind="deliverable"],
-    .semantic-lens-kind[data-kind="impact-actor"],
-    .semantic-lens-kind[data-kind="sipoc-input"],
-    .semantic-lens-kind[data-kind="start-event"],
-    .semantic-lens-kind[data-kind="story-activity"] { --lens-color: var(--frontend-stroke); }
-    .overview-map-node[data-kind="impact-deliverable"],
-    .overview-map-node[data-kind="sipoc-step"],
-    .overview-map-node[data-kind="task"],
-    .overview-map-node[data-kind="user-step"],
-    .overview-map-node[data-kind="vsm-process"],
-    .overview-map-node[data-kind="work-package"] { fill: var(--backend-stroke); stroke: var(--backend-stroke); }
-    .semantic-lens-kind[data-kind="impact-deliverable"],
-    .semantic-lens-kind[data-kind="sipoc-step"],
-    .semantic-lens-kind[data-kind="task"],
-    .semantic-lens-kind[data-kind="user-step"],
-    .semantic-lens-kind[data-kind="vsm-process"],
-    .semantic-lens-kind[data-kind="work-package"] { --lens-color: var(--backend-stroke); }
-    .overview-map-node[data-kind="call-activity"],
-    .overview-map-node[data-kind="impact-change"],
-    .overview-map-node[data-kind="phase"],
-    .overview-map-node[data-kind="release-outcome"],
-    .overview-map-node[data-kind="sipoc-output"],
-    .overview-map-node[data-kind="subprocess"],
-    .overview-map-node[data-kind="vsm-control"] { fill: var(--database-stroke); stroke: var(--database-stroke); }
-    .semantic-lens-kind[data-kind="call-activity"],
-    .semantic-lens-kind[data-kind="impact-change"],
-    .semantic-lens-kind[data-kind="phase"],
-    .semantic-lens-kind[data-kind="release-outcome"],
-    .semantic-lens-kind[data-kind="sipoc-output"],
-    .semantic-lens-kind[data-kind="subprocess"],
-    .semantic-lens-kind[data-kind="vsm-control"] { --lens-color: var(--database-stroke); }
-    .overview-map-node[data-kind="gateway"],
-    .overview-map-node[data-kind="impact-goal"],
-    .overview-map-node[data-kind="planning-package"],
-    .overview-map-node[data-kind="sipoc-customer"],
-    .overview-map-node[data-kind="story"],
-    .overview-map-node[data-kind="vsm-inventory"],
-    .overview-map-node[data-kind="vsm-queue"] { fill: var(--cloud-stroke); stroke: var(--cloud-stroke); }
-    .semantic-lens-kind[data-kind="gateway"],
-    .semantic-lens-kind[data-kind="impact-goal"],
-    .semantic-lens-kind[data-kind="planning-package"],
-    .semantic-lens-kind[data-kind="sipoc-customer"],
-    .semantic-lens-kind[data-kind="story"],
-    .semantic-lens-kind[data-kind="vsm-inventory"],
-    .semantic-lens-kind[data-kind="vsm-queue"] { --lens-color: var(--cloud-stroke); }
-    .overview-map-node[data-kind="end-event"],
-    .overview-map-node[data-kind="story-risky"],
-    .overview-map-node[data-kind="vsm-kaizen"] { fill: var(--security-stroke); stroke: var(--security-stroke); }
-    .semantic-lens-kind[data-kind="end-event"],
-    .semantic-lens-kind[data-kind="story-risky"],
-    .semantic-lens-kind[data-kind="vsm-kaizen"] { --lens-color: var(--security-stroke); }
-    .overview-map-node[data-kind="intermediate-event"],
-    .overview-map-node[data-kind="sipoc-boundary"],
-    .overview-map-node[data-kind="vsm-fifo"],
-    .overview-map-node[data-kind="vsm-supermarket"] { fill: var(--messagebus-stroke); stroke: var(--messagebus-stroke); }
-    .semantic-lens-kind[data-kind="intermediate-event"],
-    .semantic-lens-kind[data-kind="sipoc-boundary"],
-    .semantic-lens-kind[data-kind="vsm-fifo"],
-    .semantic-lens-kind[data-kind="vsm-supermarket"] { --lens-color: var(--messagebus-stroke); }
-    .overview-map-node[data-kind="annotation"],
-    .overview-map-node[data-kind="black-box-pool"],
-    .overview-map-node[data-kind="data-object"],
-    .overview-map-node[data-kind="data-store"],
-    .overview-map-node[data-kind="project"],
-    .overview-map-node[data-kind="sipoc-supplier"],
-    .overview-map-node[data-kind="vsm-customer"],
-    .overview-map-node[data-kind="vsm-supplier"] { fill: var(--external-stroke); stroke: var(--external-stroke); }
-    .semantic-lens-kind[data-kind="annotation"],
-    .semantic-lens-kind[data-kind="black-box-pool"],
-    .semantic-lens-kind[data-kind="data-object"],
-    .semantic-lens-kind[data-kind="data-store"],
-    .semantic-lens-kind[data-kind="project"],
-    .semantic-lens-kind[data-kind="sipoc-supplier"],
-    .semantic-lens-kind[data-kind="vsm-customer"],
-    .semantic-lens-kind[data-kind="vsm-supplier"] { --lens-color: var(--external-stroke); }
-    /* BIZIFY:KIND_PALETTE_END */
+    /* C4IFY:KIND_PALETTE_START */
+    .overview-map-node[data-kind="person"] { fill: var(--frontend-stroke); stroke: var(--frontend-stroke); }
+    .semantic-lens-kind[data-kind="person"] { --lens-color: var(--frontend-stroke); }
+    .overview-map-node[data-kind="software-system"] { fill: var(--backend-stroke); stroke: var(--backend-stroke); }
+    .semantic-lens-kind[data-kind="software-system"] { --lens-color: var(--backend-stroke); }
+    .overview-map-node[data-kind="container"] { fill: var(--database-stroke); stroke: var(--database-stroke); }
+    .semantic-lens-kind[data-kind="container"] { --lens-color: var(--database-stroke); }
+    .overview-map-node[data-kind="component"] { fill: var(--cloud-stroke); stroke: var(--cloud-stroke); }
+    .semantic-lens-kind[data-kind="component"] { --lens-color: var(--cloud-stroke); }
+    .overview-map-node[data-kind="external-component"],
+    .overview-map-node[data-kind="external-container"],
+    .overview-map-node[data-kind="external-person"],
+    .overview-map-node[data-kind="external-system"] { fill: var(--external-stroke); stroke: var(--external-stroke); }
+    .semantic-lens-kind[data-kind="external-component"],
+    .semantic-lens-kind[data-kind="external-container"],
+    .semantic-lens-kind[data-kind="external-person"],
+    .semantic-lens-kind[data-kind="external-system"] { --lens-color: var(--external-stroke); }
+    /* C4IFY:KIND_PALETTE_END */
     .semantic-lens-kind:hover,
     .semantic-lens-kind:focus-visible,
     .semantic-lens-kind[aria-pressed="true"] {
@@ -4866,6 +4802,18 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     /* Dashed boundary variants */
     .c-security-group { fill: transparent; stroke: var(--security-stroke); stroke-dasharray: 4,4; }
     .c-region         { fill: rgba(251, 191, 36, 0.05); stroke: var(--cloud-stroke); stroke-dasharray: 8,4; }
+    /* c4ify: C4 boundaries are dashed and neutral, so the scope reads as a
+       container of elements rather than as one more coloured element. */
+    .c-boundary       { fill: transparent; stroke: var(--text-muted, #94a3b8); stroke-dasharray: 7,5; }
+    .c4-drill-badge   { fill: var(--mask); stroke: currentColor; }
+    [data-c4-drill]   { cursor: zoom-in; }
+    .c4-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 12px; font-size: 12px; }
+    .c4-nav-label { color: var(--text-muted, #94a3b8); margin-right: 4px; text-transform: uppercase; letter-spacing: .06em; font-size: 10.5px; }
+    .c4-nav a, .c4-nav span.c4-nav-current { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--panel-border); color: inherit; text-decoration: none; }
+    .c4-nav a:hover, .c4-nav a:focus-visible { border-color: var(--frontend-stroke, #22d3ee); outline: none; }
+    .c4-nav span.c4-nav-current { background: var(--frontend-fill, rgba(34,211,238,.12)); border-color: var(--frontend-stroke, #22d3ee); font-weight: 600; }
+    .c4-nav small { opacity: .7; margin-left: 4px; }
+    @media print { .c4-nav { display: none; } }
     .c-lane           { fill: var(--lane-fill); stroke: var(--lane-stroke); stroke-dasharray: 6,6; }
 
     /* Optional trace animation, enabled only by meta.animation = "trace".
@@ -5166,6 +5114,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <h1>[PROJECT NAME] Architecture</h1>
       </div>
       <p class="subtitle">[Subtitle description]</p>
+<!-- C4IFY:VIEW_NAV -->
     </div>
 
     <!-- ARCHIFY:GUIDED_VIEWS_DATA -->
@@ -9586,7 +9535,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             label: view.label,
             count: view.focus.length
           }));
-          button.title = view.label + ' — ' + (view.note || viewerText('viewer.guided.chapter.selectedNodes', { count: view.focus.length }));
+          button.title = view.label + ' · ' + (view.note || viewerText('viewer.guided.chapter.selectedNodes', { count: view.focus.length }));
           var position = document.createElement('span');
           position.className = 'guided-view-chapter-index';
           position.setAttribute('aria-hidden', 'true');
@@ -15014,6 +14963,38 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         Archify.presentation.exit();
       }
     });
+
+    /* ===================================================================
+       c4ify drill-down: elements that have a more detailed view carry
+       data-c4-drill="<view>.html". Double-click (or Shift+Enter) opens it;
+       the sibling HTML files of one model link to each other.
+       =================================================================== */
+    (function () {
+      var container = document.querySelector('.diagram-container');
+      if (!container) return;
+      function target(event) {
+        var node = event.target && event.target.closest ? event.target.closest('[data-c4-drill]') : null;
+        return node && container.contains(node) ? node.getAttribute('data-c4-drill') : null;
+      }
+      function open(href) {
+        if (!href || !/^[A-Za-z0-9_-]+\.html$/.test(href)) return;
+        window.location.href = href;
+      }
+      container.addEventListener('dblclick', function (event) {
+        var href = target(event);
+        if (!href) return;
+        event.preventDefault();
+        event.stopPropagation();
+        open(href);
+      }, true);
+      container.addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter' || !event.shiftKey) return;
+        var href = target(event);
+        if (!href) return;
+        event.preventDefault();
+        open(href);
+      });
+    })();
   </script>
 </body>
 </html>

@@ -11,7 +11,7 @@ const root = path.resolve(__dirname, '..');
 const schemasDir = path.join(root, 'schemas');
 const output = path.join(root, 'renderers/shared/generated-validators.mjs');
 // Types whose schema exists; renderers under construction are skipped.
-const diagramTypes = ['wbs', 'bpmn', 'vsm', 'impactmap', 'storymap', 'sipoc']
+const diagramTypes = ['c4']
   .filter((type) => fs.existsSync(path.join(schemasDir, `${type}.schema.json`)));
 
 const ajv = new Ajv2020({

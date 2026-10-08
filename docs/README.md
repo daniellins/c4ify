@@ -1,20 +1,21 @@
-# Bizify documentation
+# c4ify documentation
 
 | Document | For |
 |---|---|
 | [installation.md](installation.md) | Installing the skill in Claude Code (or any agent that reads `SKILL.md`), troubleshooting |
-| [architecture.md](architecture.md) | How a spec becomes an HTML artifact; what came from Archify and what is Bizify's |
-| [methodology.md](methodology.md) | How rules are researched, graded and enforced (HARD, SOFT, waivers) |
-| [adding-a-diagram-type.md](adding-a-diagram-type.md) | Step-by-step guide for contributors adding a new type |
+| [architecture.md](architecture.md) | How a model becomes one HTML per view; what came from Archify and bizify and what is c4ify's |
+| [methodology.md](methodology.md) | How the C4 rules are sourced, graded and enforced (HARD, SOFT, waivers) |
+| [adding-a-view-type.md](adding-a-view-type.md) | Step-by-step guide for contributors adding a new view type |
 
 Inside the skill:
 
 | File | For |
 |---|---|
-| [bizify/SKILL.md](../bizify/SKILL.md) | What the agent reads: type router, fast authoring path, invariants |
-| [bizify/references/authoring-contract.md](../bizify/references/authoring-contract.md) | Rules shared by all types (locale, waivers, legend, first screen) |
-| `bizify/references/authoring-<type>.md` | Field reference, rules and repair recipes per type |
-| `bizify/references/theory-<type>.md` | The method, its rules and graded sources |
-| [bizify/references/delivery-contract.md](../bizify/references/delivery-contract.md) | Validate / deliver / visual-check receipts and handoff |
-| [bizify/references/viewer-runtime.md](../bizify/references/viewer-runtime.md) | Viewer features: search, focus, guided views, exports |
-| [bizify/renderers/README.md](../bizify/renderers/README.md) | Renderer contract (SVG semantics the viewer needs) |
+| [c4ify/SKILL.md](../c4ify/SKILL.md) | What the agent reads: fast authoring path, invariants |
+| [c4ify/references/authoring-contract.md](../c4ify/references/authoring-contract.md) | Model and views, rules, waivers, locale, legend, first screen |
+| [c4ify/references/authoring-c4.md](../c4ify/references/authoring-c4.md) | Field reference, rules and repair recipes |
+| [c4ify/references/theory-c4.md](../c4ify/references/theory-c4.md) | The C4 notation, its rules and graded sources |
+| [c4ify/references/delivery-contract.md](../c4ify/references/delivery-contract.md) | Validate / deliver (all views or one) / visual-check receipts and handoff |
+| [c4ify/references/viewer-runtime.md](../c4ify/references/viewer-runtime.md) | Viewer features: search, focus, guided views, exports |
+| [c4ify/renderers/README.md](../c4ify/renderers/README.md) | Renderer contract (files in `renderers/c4/`, SVG semantics the viewer needs) |
+| [c4ify/schemas/README.md](../c4ify/schemas/README.md) | The JSON schema of the model and views |

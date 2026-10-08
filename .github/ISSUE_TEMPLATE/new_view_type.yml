@@ -1,0 +1,29 @@
+name: New view type
+description: Propose a new C4 view (deployment, dynamic, …); discuss before coding
+labels: ["new-view-type", "discussion"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: View type
+      placeholder: deployment
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Which question does the view answer, and why don't the existing views answer it?
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Notation source
+      description: The c4model.com page (or Structurizr documentation) that defines the view and its elements.
+    validations:
+      required: true
+  - type: textarea
+    id: sketch
+    attributes:
+      label: Layout sketch and the model facts the view needs
+      description: Which elements and relationships it shows, at which level, and anything the model must gain (e.g. deployment nodes).

@@ -1,74 +1,79 @@
-# Bizify renderer contract (developer guide)
+# c4ify renderer contract (developer guide)
 
-Bizify is a fork of Archify 2.17.0-dev.1. The standalone viewer
+c4ify descends from Archify 2.17.0-dev.1 through bizify. The standalone viewer
 (`assets/template.html`: pan/zoom, search, focus, trace, guided views, themes,
-presets, exports) is type-agnostic: it only reads SVG semantics. A renderer's
-whole job is to turn one typed JSON spec into ONE `<svg>` that speaks that
-contract. `renderers/wbs/render-wbs.mjs` is the reference implementation — copy
-its structure.
+presets, exports) is type-agnostic: it only reads SVG semantics. The C4
+renderer's job is to turn one model JSON plus one selected view into ONE
+`<svg>` that speaks that contract. Delivering a model calls it once per view.
 
-## Files per type `<t>` (you own these; nothing else)
+## Files in `renderers/c4/`
 
 | File | Purpose |
 |---|---|
-| `schemas/<t>.schema.json` | JSON Schema 2020-12, `additionalProperties: false` everywhere, `schema_version: 1`, `diagram_type: "<t>"`, meta reusing `common.schema.json#/$defs/*` (locale, animation, visualPreset, qualityProfile, guidedViews, waivers, viewBox, legendMode, legendEntry, cards). |
-| `renderers/<t>/render-<t>.mjs` | Renderer (ESM, top-level await `loadDiagramWithBrandMarks`). |
-| `renderers/<t>/messages.mjs` | `export const <T>_MESSAGES = { key: [en, ptBR] }`. Required keys: `diagram.description.<t>`, `node.context.<t>`, `legend.<t>.<kind>` per legend entry, `viewer.kind.<kind>` per node kind (check i18n.mjs + other messages files for collisions; the merge throws on duplicates). Prefix every other key with `<t>.`. PT-BR must carry full accents. |
-| `renderers/<t>/palette.mjs` | `export const <T>_KIND_PALETTE = { kind: slot }`, slot ∈ frontend(cyan) backend(emerald) database(violet) cloud(amber) security(rose) messagebus(orange) external(slate). Kinds must be CSS-safe (`[a-z][a-z0-9-]*`). |
-| `examples/<name>.<t>.json` | The doctor example (name fixed in `bin/bizify.mjs` doctor map). `quality_profile: "showcase"`, `locale: "pt-BR"`, realistic tech-project content. Must pass showcase with 0 errors, 0 warnings AND visual-check containment pass. |
-| `references/authoring-<t>.md` | Authoring guide for the agent using the skill (≤ 200 lines): when to use, IR field table, layout model, HARD/SOFT rule list (ids only + one line each, pointing to `theory-*.md`), repair recipes for each layout diagnostic, 1 minimal JSON. |
-| `test/<t>.test.mjs` | node:test using `test/helpers.mjs` (see `test/wbs.test.mjs`): example passes showcase with 0 warnings; ≥1 test per HARD rule family; SOFT → advisory; waiver works. |
+| `render-c4.mjs` | Entry point (ESM, top-level await `loadDiagramWithBrandMarks`). Picks the view from `C4IFY_VIEW` (set by `--view`; first view otherwise), runs rules, layout, routing, labels and composition gates, then `writeDiagram` with the view navigation bar and glossary card. |
+| `resolve.mjs` | Pure model → view resolution: scope, neighbours, include/exclude, implied relationships lifted to the drawn level (merged with a `count`), boundary, drill-down targets (`drillTarget`). |
+| `rules.mjs` | `hardRuleProblems` (R-C4-01..05, thrown as `method/hard-rule`), `modelAdvisories` and `viewAdvisories` (SOFT R-C4-06..13). |
+| `layout.mjs` | Pure row/column assignment: people and callers on top, scope in the middle, stores and queues in the last boundary row, called systems in a side column, barycentre ordering; `view.placement` overrides. |
+| `scene.mjs` | Boxes, boundary frame, fonts and canvas size from the cells (`minimumReadableSourceTextPx`, `fitAspect`); `layout` knobs and the automatic spacing boost. |
+| `routing.mjs` | Orthogonal relationship routing, ported unchanged from Archify's `renderers/architecture/render-architecture.mjs` and wrapped in a per-view factory. |
+| `labels.mjs` | Relationship label placement: a small search over route segments, clear of elements, other labels, the boundary title and routes; honours `labelAt` / `labelDx` / `labelDy` / `labelSegment`. |
+| `svg.mjs` | SVG emission: element shapes (box, person, database, queue), drill badges (`data-c4-drill`), relationships, labels, legend, view navigation. |
+| `messages.mjs` | `C4_MESSAGES = { key: [en, ptBR] }`: titles ("System Context diagram for {name}"), type names, legend entries, rule messages. PT-BR carries full accents. |
+| `palette.mjs` | `C4_KIND_PALETTE`: C4 kind → shared slot (one hue per abstraction level, every external element slate). |
 
-Shared files (`cli.mjs`, `bin/bizify.mjs`, `type-messages.mjs`, `i18n.mjs`,
-`business.mjs`, `check-render-output.mjs`, `template.html`) are owned by the
-coordinator. If you need a shared helper, put it in your renderer folder.
+Related files: `schemas/c4.schema.json`, `references/theory-c4.md`,
+`references/authoring-c4.md`, `examples/*.c4.json`, `test/c4.test.mjs`,
+`test/resolve.test.mjs`, `test/layout.test.mjs`. Shared files
+(`renderers/shared/*`, `bin/c4ify.mjs`, `scripts/check-render-output.mjs`,
+`assets/template.html`) serve every view type; prefer a helper inside
+`renderers/c4/` over a change to them.
 
 ## SVG semantics the viewer depends on
 
 - Node: `<g ${focusNodeAttrs(id, label, passport, locale)}>` + `focusNodeTitle(...)`,
   a `c-mask` backdrop shape, the visible shape with class `c-<slot>`, and the
   primary text with `data-node-label=""`. `passport = { kind, sublabel, tag, context }`
-  feeds the details panel; `kind` MUST be the business kind in your palette.
-- Relationship: `<path ${focusEdgeAttrs(from, to, label, index, id)} data-composition-points="x,y x,y" d=... class="a-default|a-emphasis|a-security|a-dashed" marker-end="url(#arrowhead…)">`.
+  feeds the details panel; `kind` MUST be a C4 kind from `palette.mjs`.
+- Drill-down: an element with a more detailed view carries
+  `data-c4-drill="<view-key>.html"` and a ⊕ badge; the viewer opens it on
+  double-click or Shift+Enter.
+- Relationship: `<path ${focusEdgeAttrs(from, to, label, index, id)} data-composition-points="x,y x,y" d=... class="a-default|a-dashed" marker-end="url(#arrowhead…)">`.
   Paths with `a-*` + `marker-end` are geometry-checked (orthogonal only, no
-  crossings, no shared corridors, rhythm). Decorative connectors without an
-  arrowhead (tree links) omit `marker-end`.
+  crossings, no shared corridors, rhythm). Async relationships use `a-dashed`.
 - Relationship label: `<g data-detail="context" ${focusEdgeAttrs(...)}>` with a
-  `c-mask` rect behind the text (label/route clearance is checked).
+  `c-mask` rect behind the text (label/route clearance is checked). The last
+  line carries the technology in brackets.
 - Detail levels: `data-detail="context"` (read zoom) / `"fine"` (full zoom).
   Primary labels and context text must stay ≥ 6 px projected at a 930 px
   reader width: use `minimumReadableSourceTextPx(viewW)` as the font floor.
-- Frames (lanes, columns, bands): `<rect data-graph-role="structural-frame" data-composition-frame-kind="<k>" data-composition-frame-id="<id>" class="c-lane">` — routes must not run along frame borders.
-- Legend: `resolveLegend` + `renderLegend` from `shared/legend.mjs`, placed after
-  the literal comment `<!-- Legend -->` (everything before it is checked).
+- Frames (the dashed scope boundary): `<rect data-graph-role="structural-frame" data-composition-frame-kind="boundary" data-composition-frame-id="<id>">`.
+  Routes may cross a frame perpendicularly but must not run along its border.
+- Legend (the C4 key): `resolveLegend` + `renderLegend` from `shared/legend.mjs`,
+  placed after the literal comment `<!-- Legend -->` (everything before it is checked).
 - Motion: `animateAttr(meta, 'node'|'edge', step)` on shapes; step = reading order.
-- Methodology: `createAdvisories(meta)` from `shared/business.mjs`.
-  `fail(rule, msg)` for HARD rules then `throwIfHard(...)`; `warn(rule, msg, subjectId)`
-  for SOFT rules; `advisories.render()` inside the SVG. In `showcase` an active
-  advisory is a composition error; `meta.waivers[{rule, subject?, reason}]` waives it.
-  Rule ids come from the matching `references/theory-*.md` (R-BPMN-xx, R-VSM-xx…).
-- First screen: call `fitAspect(...)` after placement so the canvas is ~2:1
-  (a narrow, tall SVG overflows 1440×900). Keep node counts inside the theory's
-  legibility guidance and fail with a clear message beyond it.
-- Numbers: `formatNumber/formatPercent(value, locale)`; compute totals, never
-  trust authored totals (reject mismatches as HARD).
+- Methodology: `createAdvisories(meta)` from `shared/method.mjs`.
+  `warn(rule, msg, subjectId)` for SOFT rules; `advisories.render()` inside the
+  SVG (`<metadata id="c4ify-advisories">`). In `showcase` an active advisory is a
+  composition error; `meta.waivers[{rule, subject?, reason}]` waives it.
+  Rule ids come from `references/theory-c4.md` (R-C4-01..13).
 - Text: `wrapText` + `renderLines`; reject overflow with a message naming the
-  node and the fix (shorten label or widen). Never truncate meaning.
+  element and the fix. Never truncate meaning.
 
 ## Layout philosophy
 
-Authors give semantics, not coordinates. Derive geometry from structure
-(tree depth, lane × column, stage order, release band). Offer at most a few
-explicit knobs (`col`, `row`, `node_width`) and diagnose instead of guessing.
+Authors give semantics, not coordinates. Geometry derives from the view type,
+the element types and the relationships. The knobs (`layout`, `placement`,
+`routes`) are repair tools for a named diagnostic, and the renderer diagnoses
+instead of guessing.
 
 ## Loop
 
 ```bash
 node scripts/generate-validators.mjs && node scripts/generate-kind-palette.mjs
-node bin/bizify.mjs validate <t> examples/<x>.<t>.json --quality showcase --json
-node bin/bizify.mjs deliver <t> examples/<x>.<t>.json "$TEMP/bizify-out/<t>.html" --quality showcase
-node bin/bizify.mjs visual-check "$TEMP/bizify-out/<t>.html" --json   # needs containment pass
-node --test test/<t>.test.mjs
+node bin/c4ify.mjs validate c4 examples/online-store.c4.json --quality showcase --json
+node bin/c4ify.mjs deliver c4 examples/online-store.c4.json "$TEMP/c4ify-out" --quality showcase
+node bin/c4ify.mjs visual-check "$TEMP/c4ify-out/<view-key>.html" --json   # needs containment pass
+npm test
 ```
 Look at the PNG screenshots next to the HTML (light and dark) and fix what a
 human would see as wrong: overlaps, cramped text, unbalanced whitespace.

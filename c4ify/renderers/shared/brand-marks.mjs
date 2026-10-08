@@ -13,6 +13,7 @@ const COLLECTIONS = Object.freeze({
   sequence: 'participants',
   dataflow: 'nodes',
   lifecycle: 'states',
+  c4: 'model/elements',
 });
 const MARK_BY_LOOKUP = new Map();
 const MARK_BY_DOMAIN = new Map();
@@ -453,7 +454,10 @@ async function mapConcurrent(values, limit, visit) {
 
 export async function prepareDiagramBrandMarks(diagramType, diagram) {
   const collection = COLLECTIONS[diagramType];
-  const nodes = collection && Array.isArray(diagram[collection]) ? diagram[collection] : [];
+  // A collection may be nested ("model/elements"); it is also the JSON
+  // pointer prefix used in diagnostics below.
+  const found = collection ? collection.split('/').reduce((value, key) => value?.[key], diagram) : undefined;
+  const nodes = Array.isArray(found) ? found : [];
   const unknown = [];
   const remoteByUrl = new Map();
   const deadline = Date.now() + captureTimeoutMilliseconds();

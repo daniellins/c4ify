@@ -47,10 +47,10 @@ export async function loadDiagramWithBrandMarks(options) {
   return loaded;
 }
 
-const START_TYPES = new Set(['wbs', 'bpmn', 'vsm', 'impactmap', 'storymap', 'sipoc']);
+const START_TYPES = new Set(['c4']);
 
 // Common CLI tail: fill the template and write the standalone HTML file.
-export function writeDiagram({ outPath, template, diagramType, meta, svg, cards, sourceEvidence = null }) {
+export function writeDiagram({ outPath, template, diagramType, meta, svg, cards, sourceEvidence = null, viewNav = '', guidedViews }) {
   if (!START_TYPES.has(diagramType)) throw new Error(`writeDiagram: unknown diagram type ${JSON.stringify(diagramType)}`);
   const outputGuard = outputPathGuards.get(outPath);
   if (outputGuard) resolveOutputPath(outputGuard);
@@ -62,8 +62,9 @@ export function writeDiagram({ outPath, template, diagramType, meta, svg, cards,
     cards: renderCards(cards),
     locale: meta.locale,
     visualPreset: meta.visual_preset || 'classic',
-    guidedViews: meta.views || [],
+    guidedViews: guidedViews || meta.views || [],
     sourceEvidence,
+    viewNav,
   }));
   outputPathGuards.delete(outPath);
   console.log(outPath);
@@ -72,19 +73,10 @@ export function writeDiagram({ outPath, template, diagramType, meta, svg, cards,
 // Semantic node collections per type. Guided views may focus any id from
 // any listed collection, so every id is unique across them.
 export const SEMANTIC_COLLECTIONS = {
-  wbs: ['elements'],
-  bpmn: ['nodes'],
-  vsm: ['nodes'],
-  impactmap: ['nodes'],
-  storymap: ['activities', 'steps', 'stories'],
-  sipoc: ['suppliers', 'inputs', 'steps', 'outputs', 'customers'],
+  c4: [],
 };
 
-const RELATIONSHIP_COLLECTIONS = {
-  bpmn: 'flows',
-  vsm: 'flows',
-  sipoc: 'links',
-};
+const RELATIONSHIP_COLLECTIONS = {};
 
 // Relationship IDs are optional for backwards compatibility, but once an
 // author supplies one it becomes the durable identity used by viewer links.

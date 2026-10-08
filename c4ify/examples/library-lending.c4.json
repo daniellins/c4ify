@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "diagram_type": "c4",
+  "meta": {
+    "title": "Library Lending",
+    "subtitle": "C4 model of a public library's lending system, from context down to the API's components.",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "glossary": {
+      "OIDC": "OpenID Connect, the single sign-on protocol of the city's identity provider"
+    }
+  },
+  "model": {
+    "elements": [
+      { "id": "member", "type": "person", "name": "Library Member", "description": "Searches the catalogue, borrows books and renews loans." },
+      { "id": "librarian", "type": "person", "name": "Librarian", "description": "Registers returns and manages holds at the desk." },
+      { "id": "lending", "type": "softwareSystem", "name": "Lending System", "description": "Lets members borrow, renew and reserve books." },
+      { "id": "portal", "type": "container", "parent": "lending", "name": "Member Portal", "technology": "Vue.js", "description": "Single-page app for search, loans and reservations." },
+      { "id": "api", "type": "container", "parent": "lending", "name": "Lending API", "technology": "Java, Spring Boot", "description": "Applies lending rules and exposes loans and holds." },
+      { "id": "db", "type": "container", "parent": "lending", "name": "Lending Database", "technology": "PostgreSQL", "shape": "database", "description": "Stores books, copies, loans and holds." },
+      { "id": "loans", "type": "component", "parent": "api", "name": "Loans Controller", "technology": "Spring MVC", "description": "Handles borrow, renew and return requests." },
+      { "id": "catalog", "type": "component", "parent": "api", "name": "Availability Service", "technology": "Spring Bean", "description": "Decides whether a copy can be lent or held." },
+      { "id": "repository", "type": "component", "parent": "api", "name": "Loan Repository", "technology": "Spring Data JPA", "description": "Reads and writes loans and holds." },
+      { "id": "reminders", "type": "component", "parent": "api", "name": "Reminder Service", "technology": "Spring Bean", "description": "Schedules due-date and hold-ready notices." },
+      { "id": "identity", "type": "softwareSystem", "external": true, "name": "City Identity Provider", "description": "Single sign-on for every city service." },
+      { "id": "email", "type": "softwareSystem", "external": true, "name": "E-mail Gateway", "description": "Delivers transactional e-mail on behalf of the city." }
+    ],
+    "relationships": [
+      { "from": "member", "to": "portal", "description": "Searches and borrows books using", "technology": "HTTPS" },
+      { "from": "librarian", "to": "portal", "description": "Registers returns and holds using", "technology": "HTTPS" },
+      { "from": "portal", "to": "identity", "description": "Signs members in with", "technology": "OIDC" },
+      { "from": "portal", "to": "loans", "description": "Sends loan requests to", "technology": "JSON/HTTPS" },
+      { "from": "loans", "to": "catalog", "description": "Checks if a copy can be lent with" },
+      { "from": "loans", "to": "repository", "description": "Records loans and returns through" },
+      { "from": "loans", "to": "reminders", "description": "Schedules notices with" },
+      { "from": "catalog", "to": "db", "description": "Reads copy availability from", "technology": "JDBC" },
+      { "from": "repository", "to": "db", "description": "Reads and writes loans in", "technology": "JDBC" },
+      { "from": "reminders", "to": "email", "description": "Sends due-date reminders using", "technology": "SMTP" }
+    ]
+  },
+  "views": [
+    { "key": "context", "type": "systemContext", "scope": "lending", "description": "Who uses the Lending System and which city services it relies on." },
+    { "key": "containers", "type": "container", "scope": "lending", "description": "The applications and data store that make up the Lending System." },
+    { "key": "api-components", "type": "component", "scope": "api", "description": "Inside the Lending API: how a loan request is handled." }
+  ]
+}

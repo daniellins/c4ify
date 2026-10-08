@@ -1,9 +1,12 @@
 # Third-party notices
 
-Bizify is a fork of Archify 2.17.0-dev.1 (https://github.com/tt-a1i/archify, MIT).
-The viewer runtime, delivery pipeline, geometry checks and brand-mark catalogue
-come from Archify; the business renderers, schemas, method rules and references
-are Bizify's own. Where this notice says "Archify" it refers to that inherited code.
+c4ify is a fork of bizify (https://github.com/daniellins/bizify, MIT, commit
+7e174b9), which is itself a fork of Archify 2.17.0-dev.1
+(https://github.com/tt-a1i/archify, MIT). The viewer runtime, delivery
+pipeline, geometry checks, orthogonal routing and brand-mark catalogue come from
+Archify; the method-rule engine and pt-BR locale come from bizify; the C4
+renderer, schema, rules and references are c4ify's own. Where this notice says
+"Archify" it refers to that inherited code.
 
 Archify includes optional vector data for third-party brand marks. These marks
 are provided only to identify technologies and services in user-authored
@@ -65,6 +68,26 @@ JetBrains Mono is maintained at
 and is distributed under the SIL Open Font License 1.1. The complete license
 text is preserved in `assets/JetBrainsMono-OFL.txt` in the packaged Skill and
 in the font CSS carried by standalone HTML and SVG exports.
+
+## C4 model notation (c4model.com)
+
+The C4 model was created by Simon Brown. The notation guidance and review
+checklist published at [c4model.com](https://c4model.com) are licensed under
+[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
+c4ify paraphrases that guidance (it does not copy the pages) in
+`references/theory-c4.md`, `references/authoring-c4.md`, the R-C4-* rule
+messages and the generated titles and key. Each rule cites the c4model.com page
+it comes from. c4ify is not affiliated with or endorsed by Simon Brown or
+c4model.com.
+
+## Structurizr
+
+[Structurizr](https://structurizr.com) (Simon Brown; open-source tooling under
+the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)) inspired
+the "one model, many views" organization and the implied-relationships
+behaviour. It is referenced only: no Structurizr code, DSL grammar or files are
+bundled. Planned importers will read Structurizr's documented JSON export and a
+documented subset of its DSL with c4ify's own code.
 
 ## No additional rights granted
 

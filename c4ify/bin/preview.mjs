@@ -49,7 +49,7 @@ function previewPage() {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Bizify Live Preview</title>
+  <title>c4ify Live Preview</title>
   <style>
     :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
     * { box-sizing: border-box; }
@@ -77,7 +77,7 @@ function previewPage() {
 </head>
 <body data-state="checking" data-has-artifact="false">
   <header>
-    <span class="brand">Bizify Preview</span>
+    <span class="brand">c4ify Preview</span>
     <details id="failure" hidden>
       <summary role="button" aria-controls="diagnostic-panel">View diagnostic</summary>
       <div class="diagnostic" id="diagnostic-panel"><pre id="diagnostic"></pre><button id="copy" type="button">Copy diagnostic</button></div>
@@ -86,7 +86,7 @@ function previewPage() {
   </header>
   <main>
     <div id="empty">Waiting for the first verified diagram. Invalid input will stay here with an exact diagnostic.</div>
-    <iframe id="artifact" title="Verified Bizify diagram"></iframe>
+    <iframe id="artifact" title="Verified c4ify diagram"></iframe>
   </main>
   <script>
     (function () {

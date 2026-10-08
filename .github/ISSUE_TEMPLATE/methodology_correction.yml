@@ -1,29 +1,29 @@
-name: Methodology correction
-description: A rule is wrong, missing, too strict or too loose — with a source
+name: C4 notation correction
+description: A rule is wrong, missing, too strict or too loose (with a source)
 labels: ["methodology"]
 body:
   - type: input
     id: rule
     attributes:
       label: Rule id (or "new rule")
-      placeholder: R-BPMN-19
+      placeholder: R-C4-08
     validations:
       required: true
   - type: textarea
     id: claim
     attributes:
-      label: What the rule should say, and at which level (HARD / SOFT / opt-in)
+      label: What the rule should say, and at which level (HARD / SOFT)
     validations:
       required: true
   - type: textarea
     id: source
     attributes:
       label: Source
-      description: Standard, book or author with section/page. HARD rules need a primary (Gold) source.
+      description: The c4model.com page (notation, review checklist, diagram pages) or another primary source, with the relevant passage. HARD rules need a primary source.
     validations:
       required: true
   - type: textarea
     id: spec
     attributes:
-      label: Spec showing current vs expected behaviour
+      label: Model showing current vs expected behaviour
       render: json

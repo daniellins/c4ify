@@ -1,6 +1,6 @@
 # Code of Conduct
 
-Bizify adopts the **[Contributor Covenant, version 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)**
+c4ify adopts the **[Contributor Covenant, version 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)**
 as its code of conduct. The summary below does not replace the full text.
 
 ## Our pledge
@@ -33,7 +33,7 @@ Examples of unacceptable behavior:
 This code applies in all project spaces (issues, pull requests, discussions) and when an individual
 officially represents the project. Report unacceptable behavior privately to the maintainer through
 the contact listed on the maintainer's GitHub profile ([@daniellins](https://github.com/daniellins))
-or via a [private security advisory](https://github.com/daniellins/bizify/security/advisories/new)
+or via a [private security advisory](https://github.com/daniellins/c4ify/security/advisories/new)
 if the report is sensitive. All reports will be reviewed promptly and confidentially.
 
 Maintainers follow the Contributor Covenant enforcement guidelines: correction, warning, temporary

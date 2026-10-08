@@ -13,7 +13,7 @@ function plainObject(value) {
 }
 
 function normalizedDiagnostic(diagnostic) {
-  const message = String(diagnostic?.message || 'Bizify could not classify this failure.').trim();
+  const message = String(diagnostic?.message || 'c4ify could not classify this failure.').trim();
   return {
     code: String(diagnostic?.code || 'internal/unclassified'),
     severity: diagnostic?.severity === 'warning' ? 'warning' : 'error',

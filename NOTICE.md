@@ -1,61 +1,83 @@
-# Notice — origin, attribution and what changed
+# Notice: origin, attribution and what changed
 
-## Origin
+## Provenance
 
-Bizify is a **fork of [Archify](https://github.com/tt-a1i/archify)**, created by
-[tt-a1i](https://github.com/tt-a1i) and released under the MIT License. Archify is itself based on
-[Cocoon-AI/architecture-diagram-generator](https://github.com/Cocoon-AI/architecture-diagram-generator)
-(MIT, v1.0).
+```
+Cocoon-AI/architecture-diagram-generator (Cocoon AI, MIT, v1.0)
+  └─ Archify (tt-a1i, MIT), fork point 2.17.0-dev.1
+       └─ bizify (Daniel Lins, MIT), business diagrams, fork point commit 7e174b9
+            └─ c4ify (Daniel Lins, MIT), C4 model diagrams
+```
 
-- Fork point: **Archify 2.17.0-dev.1** (September 2026).
-- Relationship: independent downstream project, focused on **business diagrams**. Bizify is not
-  affiliated with, sponsored by or endorsed by the Archify author. Archify remains the right tool for
-  software architecture, workflow, sequence, data-flow and lifecycle diagrams.
+- [Archify](https://github.com/tt-a1i/archify) is created by [tt-a1i](https://github.com/tt-a1i)
+  and based on [Cocoon-AI/architecture-diagram-generator](https://github.com/Cocoon-AI/architecture-diagram-generator).
+- [bizify](https://github.com/daniellins/bizify) forked Archify 2.17.0-dev.1 (September 2026) for
+  business diagrams (WBS, BPMN, VSM, impact map, story map, SIPOC).
+- c4ify forked bizify at commit `7e174b9` (October 2026) and replaced the business renderers with
+  a C4 model renderer.
+
+c4ify is an independent downstream project. It is not affiliated with, sponsored by or endorsed by
+the Archify author, Cocoon AI, Simon Brown or c4model.com. Archify remains the right tool for
+free-form architecture, workflow, sequence, data-flow and lifecycle diagrams; bizify for business
+diagrams.
 
 The MIT License requires that the original copyright notices be kept. They are preserved in
-[LICENSE](LICENSE) and [bizify/LICENSE](bizify/LICENSE).
+[LICENSE](LICENSE) and [c4ify/LICENSE](c4ify/LICENSE).
 
-## What Bizify inherits from Archify (largely unchanged)
+## What c4ify inherits from Archify (largely unchanged)
 
 | Area | Files |
 |---|---|
-| Standalone viewer: themes, presets, pan/zoom, search, focus, Semantic Lens, guided views, presentation, exports | `bizify/assets/template.html` |
-| Delivery pipeline: validate, deliver (atomic write, SHA-256 receipts), preview | `bizify/bin/bizify.mjs`, `bizify/bin/preview.mjs` |
-| Browser evidence and containment checks | `bizify/bin/visual-check.mjs` |
-| Artifact and composition checks (orthogonal routes, crossings, corridors, label clearance, readability) | `bizify/scripts/check-render-output.mjs`, `bizify/renderers/shared/geometry.mjs` |
-| Legend, diagnostics, output-path safety, text fitting, i18n framework, brand marks | `bizify/renderers/shared/*` |
+| Standalone viewer: themes, presets, pan/zoom, search, focus, Semantic Lens, guided views, presentation, exports | `c4ify/assets/template.html` |
+| Delivery pipeline: validate, deliver (atomic write, SHA-256 receipts), preview | `c4ify/bin/c4ify.mjs`, `c4ify/bin/preview.mjs` |
+| Browser evidence and containment checks | `c4ify/bin/visual-check.mjs` |
+| Artifact and composition gates (orthogonal routes, crossings, corridors, border runs, label clearance, readability) | `c4ify/scripts/check-render-output.mjs`, `c4ify/renderers/shared/geometry.mjs` |
+| Orthogonal relationship routing, ported from `renderers/architecture/render-architecture.mjs` (algorithm unchanged, wrapped in a per-view factory) | `c4ify/renderers/c4/routing.mjs` |
+| Legend, diagnostics, output-path safety, text fitting, i18n framework, brand marks | `c4ify/renderers/shared/*` |
 
 Internal identifiers such as `window.Archify`, `ARCHIFY_*` environment variables and
 `<!-- ARCHIFY:… -->` template sentinels were kept on purpose, to make it easier to compare with and
 port fixes from upstream.
 
-## What Bizify changed or added
+## What c4ify inherits from bizify
 
-- **Removed** the architecture, workflow, sequence, data-flow and lifecycle renderers, schemas,
-  examples, the architecture compare/delta module, the workflow migration and the upstream update
-  checker (which pointed at Archify's release channel).
-- **Added** six renderers and JSON Schemas — `wbs`, `bpmn`, `vsm`, `impactmap`, `storymap`,
-  `sipoc` — each with an authoring guide and a researched theory reference with graded sources.
-- **Added** methodology advisories (`method/R-…`), waivers with mandatory reasons, and the rule that
-  active advisories block the `showcase` profile.
-- **Added** computed business metrics (WBS roll-up, VSM lead time, activity ratio, rolled %C&A,
-  takt, inventory days) with cross-checks against authored totals.
-- **Added** a Brazilian Portuguese (`pt-BR`) viewer locale, replacing the Simplified Chinese one in
-  this fork; English remains the default.
-- **Added** first-screen aspect fitting, business kind → palette mapping for the viewer, the
-  `bizify guide` business scenario recipes and a new test suite.
+- The method-rule engine: rule ids, HARD rules that refuse the input, SOFT advisories serialized
+  into the SVG, the rule that active advisories block the `showcase` profile, and waivers with a
+  mandatory reason (`meta.waivers`) (`c4ify/renderers/shared/method.mjs`).
+- The Brazilian Portuguese (`pt-BR`) viewer locale.
+- First-screen aspect fitting, the kind → palette generator and the repository scaffolding (CI,
+  issue templates, contribution flow, documentation layout).
+
+## What is new in c4ify
+
+- **C4 model and views:** one `*.c4.json` model (people, software systems, containers, components,
+  relationships) with many views (`systemLandscape`, `systemContext`, `container`, `component`),
+  schema `c4ify/schemas/c4.schema.json`.
+- **Resolver** (`renderers/c4/resolve.mjs`): view scope, neighbours, include/exclude, and implied
+  relationships lifted to the level each view draws, merged with a count.
+- **Layout** (`layout.mjs`, `scene.mjs`): people on top, scope inside a dashed boundary, stores and
+  queues in the last boundary row, called systems in a side column, automatic left-to-right for
+  deep views, automatic spacing growth.
+- **Label placement** (`labels.mjs`): a small search for a free spot on each route.
+- **Drill-down and navigation:** one HTML per view, a navigation bar, ⊕ elements that open the
+  next level on double-click or Shift+Enter.
+- **Rules R-C4-01..13** (`rules.mjs`), generated titles and key, glossary card.
 
 ## Third-party material
 
-Brand-mark vector data and its licensing are described in
-[bizify/THIRD_PARTY_NOTICES.md](bizify/THIRD_PARTY_NOTICES.md). The bundled JetBrains Mono font
-subsets are under the SIL Open Font License ([bizify/assets/JetBrainsMono-OFL.txt](bizify/assets/JetBrainsMono-OFL.txt)).
+The C4 model was created by Simon Brown. The notation guidance and review checklist at
+[c4model.com](https://c4model.com) are licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); c4ify paraphrases them, with
+attribution, in `c4ify/references/theory-c4.md` and in its rule messages. The "one model, many
+views" organization follows [Structurizr](https://structurizr.com) (referenced only; nothing is
+bundled).
 
-Method content (rules and definitions) is summarized and cited from the published standards and
-books listed in each `bizify/references/theory-*.md`. Those works remain the property of their
-authors and publishers; Bizify quotes them only briefly, for reference.
+Brand-mark vector data and its licensing are described in
+[c4ify/THIRD_PARTY_NOTICES.md](c4ify/THIRD_PARTY_NOTICES.md). The bundled JetBrains Mono font
+subsets are under the SIL Open Font License ([c4ify/assets/JetBrainsMono-OFL.txt](c4ify/assets/JetBrainsMono-OFL.txt)).
 
 ## Thanks
 
-To **tt-a1i**, for Archify: the quality of its viewer and of its delivery discipline is what made a
-business-diagram fork worth doing. To Cocoon AI, for the original generator.
+To **tt-a1i**, for Archify: its viewer, routing and delivery discipline are the foundation. To
+**Simon Brown**, for the C4 model and for publishing its guidance openly. To Cocoon AI, for the
+original generator.

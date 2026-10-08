@@ -1,26 +1,37 @@
 cff-version: 1.2.0
-message: "If you use Bizify in research or teaching, please cite it as below."
-title: "Bizify: method-validated business diagrams for technology projects"
+message: "If you use c4ify in research or teaching, please cite it as below."
+title: "c4ify: C4 model diagrams validated by the notation, explorable as HTML"
 type: software
 authors:
   - family-names: Lins
     given-names: Daniel
 version: 0.1.0
-date-released: 2026-09-24
 license: MIT
-repository-code: "https://github.com/daniellins/bizify"
+repository-code: "https://github.com/daniellins/c4ify"
 keywords:
-  - work breakdown structure
-  - BPMN
-  - value stream mapping
-  - impact mapping
-  - user story mapping
-  - SIPOC
+  - C4 model
+  - software architecture
+  - system context diagram
+  - container diagram
+  - component diagram
   - agent skill
 references:
+  - type: software
+    title: bizify
+    authors:
+      - family-names: Lins
+        given-names: Daniel
+    repository-code: "https://github.com/daniellins/bizify"
+    license: MIT
   - type: software
     title: Archify
     authors:
       - alias: tt-a1i
     repository-code: "https://github.com/tt-a1i/archify"
     license: MIT
+  - type: website
+    title: "The C4 model for visualising software architecture"
+    authors:
+      - family-names: Brown
+        given-names: Simon
+    url: "https://c4model.com"

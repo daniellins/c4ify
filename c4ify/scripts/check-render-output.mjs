@@ -316,19 +316,19 @@ console.log(JSON.stringify({ ok, file: htmlPath, checks, composition }, null, 2)
 // Let pending stdout writes drain: large receipts are asynchronous when piped.
 process.exitCode = ok ? 0 : 1;
 
-// Business renderers publish methodology findings (SOFT rules such as a WBS
-// parent with a single child) as JSON inside <metadata id="bizify-advisories">.
+// Renderers publish methodology findings (SOFT rules such as a C4 container
+// without technology) as JSON inside <metadata id="c4ify-advisories">.
 // They count as composition warnings, so showcase acceptance needs zero active
 // advisories; an authored waiver keeps the finding visible but not blocking.
 function collectMethodAdvisories(svg) {
-  const match = svg.match(/<metadata\b[^>]*\bid="bizify-advisories"[^>]*>([\s\S]*?)<\/metadata>/i);
+  const match = svg.match(/<metadata\b[^>]*\bid="c4ify-advisories"[^>]*>([\s\S]*?)<\/metadata>/i);
   if (!match) return [];
   try {
     const decoded = match[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
     const parsed = JSON.parse(decoded);
     return Array.isArray(parsed) ? parsed.filter((entry) => entry && typeof entry.rule === 'string') : [];
   } catch {
-    return [{ rule: 'advisory-metadata', message: 'bizify-advisories metadata is not valid JSON.' }];
+    return [{ rule: 'advisory-metadata', message: 'c4ify-advisories metadata is not valid JSON.' }];
   }
 }
 
