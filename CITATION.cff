@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use Bizify in research or teaching, please cite it as below."
+title: "Bizify: method-validated business diagrams for technology projects"
+type: software
+authors:
+  - family-names: Lins
+    given-names: Daniel
+version: 0.1.0
+date-released: 2026-09-24
+license: MIT
+repository-code: "https://github.com/daniellins/bizify"
+keywords:
+  - work breakdown structure
+  - BPMN
+  - value stream mapping
+  - impact mapping
+  - user story mapping
+  - SIPOC
+  - agent skill
+references:
+  - type: software
+    title: Archify
+    authors:
+      - alias: tt-a1i
+    repository-code: "https://github.com/tt-a1i/archify"
+    license: MIT

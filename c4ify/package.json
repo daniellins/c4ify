@@ -1,0 +1,37 @@
+{
+  "name": "bizify",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "JSON-IR business diagram renderers (WBS / BPMN / VSM / impact map / story map / SIPOC), forked from Archify 2.17.0-dev.1.",
+  "license": "MIT",
+  "bin": {
+    "bizify": "./bin/bizify.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "generate:validators": "node scripts/generate-validators.mjs",
+    "check:validators": "node scripts/generate-validators.mjs --check",
+    "generate:palette": "node scripts/generate-kind-palette.mjs",
+    "check:palette": "node scripts/generate-kind-palette.mjs --check",
+    "generate:brand-marks": "node scripts/generate-brand-marks.mjs",
+    "check:brand-marks": "node scripts/generate-brand-marks.mjs --check",
+    "test": "npm run check:validators && npm run check:palette && node scripts/run-tests.mjs",
+    "render:examples": "node scripts/render-examples.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "simple-icons": "16.32.0"
+  },
+  "overrides": {
+    "fast-uri": "^3.1.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/daniellins/bizify.git"
+  },
+  "homepage": "https://github.com/daniellins/bizify",
+  "author": "Daniel Lins"
+}

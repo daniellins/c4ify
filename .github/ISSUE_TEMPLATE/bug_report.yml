@@ -1,0 +1,40 @@
+name: Bug report
+description: Wrong layout, crash, wrong number or a rule that misfires
+labels: ["bug", "triage"]
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Diagram type
+      options: [wbs, bpmn, vsm, impactmap, storymap, sipoc, viewer / CLI]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: spec
+    attributes:
+      label: Minimal JSON spec
+      description: The smallest spec that reproduces the problem.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and output
+      description: e.g. `node bin/bizify.mjs validate wbs spec.json --quality showcase --json`
+      render: shell
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot (for visual problems)
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "bizify 0.1.0 · Node 22 · Windows 11 · Chrome 130"

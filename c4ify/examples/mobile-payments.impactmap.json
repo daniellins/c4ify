@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "diagram_type": "impactmap",
+  "meta": {
+    "title": "Mapa de Impacto — Carteira PagaJá",
+    "subtitle": "Como a carteira PagaJá chega a 100 mil pagadores ativos.",
+    "locale": "pt-BR",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "caminho", "label": "Caminho da próxima iteração", "focus": ["meta", "consumidor", "sem-dinheiro", "checkout-qr"], "note": "Caminho mais curto até a meta: só o checkout por QR entra na próxima iteração." },
+      { "id": "obstaculos", "label": "Quem pode atrapalhar", "focus": ["abandono-kyc", "kyc-selfie", "bcb", "fora-regra", "checklist-pix"], "note": "Impactos negativos também entram no mapa: abandono no KYC e regras do Pix." }
+    ]
+  },
+  "nodes": [
+    { "id": "meta", "level": "goal", "label": "Aumentar pagadores ativos mensais da carteira",
+      "note": "Um pagador ativo fez ao menos uma transação paga nos últimos 30 dias.",
+      "metric": { "name": "Pagadores ativos mensais", "meter": "≥ 1 transação paga em 30 dias", "baseline": 40000, "constraint": 60000, "target": 100000, "deadline": "jun/2027" } },
+
+    { "id": "lojista", "level": "actor", "parent": "meta", "label": "Dona de pequeno comércio", "actor_type": "primary", "note": "Persona Dona Ana: padaria de bairro, Android, sem maquininha." },
+    { "id": "consumidor", "level": "actor", "parent": "meta", "label": "Consumidor de 18 a 30 anos", "actor_type": "primary" },
+    { "id": "risco", "level": "actor", "parent": "meta", "label": "Time de risco do adquirente", "actor_type": "secondary" },
+    { "id": "bcb", "level": "actor", "parent": "meta", "label": "Regulação do Pix (Banco Central)", "actor_type": "off-stage" },
+
+    { "id": "aceita-qr", "level": "impact", "parent": "lojista", "label": "Aceita pagamento por QR sem maquininha", "direction": "increase", "priority": 2 },
+    { "id": "indica", "level": "impact", "parent": "lojista", "label": "Indica a carteira a lojistas vizinhos", "direction": "start", "priority": 4 },
+    { "id": "sem-dinheiro", "level": "impact", "parent": "consumidor", "label": "Paga em pequenas lojas sem usar dinheiro", "direction": "increase", "priority": 1 },
+    { "id": "abandono-kyc", "level": "impact", "parent": "consumidor", "label": "Abandona o cadastro na etapa de KYC", "direction": "decrease", "priority": 3 },
+    { "id": "aprova-rapido", "level": "impact", "parent": "risco", "label": "Aprova lojistas em 1 dia em vez de 5", "direction": "increase", "priority": 3 },
+    { "id": "fora-regra", "level": "impact", "parent": "bcb", "label": "Barra fluxos fora das regras do Pix", "direction": "stop", "priority": 5 },
+
+    { "id": "qr-estatico", "level": "deliverable", "parent": "aceita-qr", "label": "QR code estático no app do lojista", "deliverable_kind": "software", "priority": 2 },
+    { "id": "roteiro-campo", "level": "deliverable", "parent": "aceita-qr", "label": "Roteiro de vendas em campo", "deliverable_kind": "organisational", "priority": 3 },
+    { "id": "indicacao", "level": "deliverable", "parent": "indica", "label": "Programa de indicação com bônus", "deliverable_kind": "organisational", "priority": 4 },
+    { "id": "checkout-qr", "level": "deliverable", "parent": "sem-dinheiro", "label": "Checkout por QR code no app do consumidor", "deliverable_kind": "software", "priority": 1, "on_path": true,
+      "note": "Leitura do QR, confirmação por biometria e comprovante em até 3 segundos." },
+    { "id": "cashback", "level": "deliverable", "parent": "sem-dinheiro", "label": "Cashback na primeira compra", "deliverable_kind": "organisational", "priority": 3 },
+    { "id": "kyc-selfie", "level": "deliverable", "parent": "abandono-kyc", "label": "KYC por selfie com prova de vida", "deliverable_kind": "software", "priority": 2 },
+    { "id": "auto-aprova", "level": "deliverable", "parent": "aprova-rapido", "label": "Regras de aprovação automática", "deliverable_kind": "software", "priority": 3 },
+    { "id": "checklist-pix", "level": "deliverable", "parent": "fora-regra", "label": "Checklist de conformidade Pix por release", "deliverable_kind": "organisational", "priority": 4 }
+  ]
+}

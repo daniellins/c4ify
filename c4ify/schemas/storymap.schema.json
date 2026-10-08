@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bizify/bizify/schemas/storymap.schema.json",
+  "title": "Bizify User Story Map (Patton)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "diagram_type", "meta", "activities", "steps", "stories"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "diagram_type": { "const": "storymap" },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "subtitle": { "type": "string" },
+        "output": { "type": "string" },
+        "locale": { "$ref": "common.schema.json#/$defs/locale" },
+        "animation": { "$ref": "common.schema.json#/$defs/animation" },
+        "visual_preset": { "$ref": "common.schema.json#/$defs/visualPreset" },
+        "quality_profile": { "$ref": "common.schema.json#/$defs/qualityProfile" },
+        "views": { "$ref": "common.schema.json#/$defs/guidedViews" },
+        "waivers": { "$ref": "common.schema.json#/$defs/waivers" },
+        "viewBox": { "$ref": "common.schema.json#/$defs/viewBox" },
+        "legend": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": { "$ref": "common.schema.json#/$defs/legendMode" },
+            "entries": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "story-activity": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "user-step": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "story": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "story-risky": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "release-outcome": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "narrative": { "$ref": "common.schema.json#/$defs/legendEntry" }
+              }
+            }
+          }
+        },
+        "mode": { "enum": ["now", "future"] },
+        "frame": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "what": { "type": "string", "minLength": 1, "maxLength": 160 },
+            "who": { "type": "string", "minLength": 1, "maxLength": 160 },
+            "why": { "type": "string", "minLength": 1, "maxLength": 200 }
+          }
+        },
+        "column_width": { "type": "number", "minimum": 120, "maximum": 220 },
+        "summary": { "type": "boolean" }
+      }
+    },
+    "personas": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "sketch": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "role": { "enum": ["user", "chooser"] }
+        }
+      }
+    },
+    "activities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "order": { "type": "integer", "minimum": 1 },
+          "persona": { "$ref": "common.schema.json#/$defs/id" },
+          "note": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "priority": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 14,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "activity", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "activity": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "order": { "type": "integer", "minimum": 1 },
+          "note": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "priority": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "stories": {
+      "type": "array",
+      "maxItems": 60,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "step", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "step": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "release": { "$ref": "common.schema.json#/$defs/id" },
+          "priority": { "type": "integer", "minimum": 1 },
+          "persona": { "$ref": "common.schema.json#/$defs/id" },
+          "kind": { "enum": ["subtask", "alternative", "exception", "detail"] },
+          "risky": { "type": "boolean" },
+          "note": { "type": "string", "minLength": 1, "maxLength": 240 }
+        }
+      }
+    },
+    "releases": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "order": { "type": "integer", "minimum": 1 },
+          "goal": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "success_metric": { "type": "string", "minLength": 1, "maxLength": 100 }
+        }
+      }
+    },
+    "cards": { "$ref": "common.schema.json#/$defs/cards" }
+  }
+}

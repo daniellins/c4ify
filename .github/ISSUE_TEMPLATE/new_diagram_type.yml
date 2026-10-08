@@ -1,0 +1,27 @@
+name: New diagram type
+description: Propose a new business diagram (discuss before coding)
+labels: ["new-type", "discussion"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Type name
+      placeholder: raci
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Which business question does it answer, and why don't the existing types answer it?
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Primary sources (standard or original author)
+    validations:
+      required: true
+  - type: textarea
+    id: sketch
+    attributes:
+      label: Layout sketch and the facts an author must provide

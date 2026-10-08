@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea
+    url: https://github.com/daniellins/bizify/discussions
+    about: Ask questions and share diagrams in Discussions.
+  - name: Architecture, sequence, data-flow or state diagrams
+    url: https://github.com/tt-a1i/archify
+    about: Those belong to Archify, the project Bizify was forked from.

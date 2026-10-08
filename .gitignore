@@ -1,0 +1,10 @@
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+# rendered artifacts and visual-check output
+*.visual-check.*
+out/
+bizify-demo/
+# local packages
+*.skill

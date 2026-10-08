@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sipoc",
+  "meta": {
+    "title": "SIPOC — Release do app PagaJá",
+    "locale": "pt-BR",
+    "quality_profile": "showcase",
+    "process": "Release mensal do app para produção (lojas Apple e Google)",
+    "views": [
+      { "id": "qualidade", "label": "Portões de qualidade", "focus": ["qa", "plano-testes", "regressao", "corrigir", "seguranca", "pentest", "validar-seguranca"], "note": "Regressão, correções e aprovação de segurança: as etapas que o BPMN vai detalhar." },
+      { "id": "lojas", "label": "Publicação nas lojas", "focus": ["lojas", "politicas", "submeter", "liberar", "build", "relatorio"], "note": "A revisão das lojas (até 48 h) é a principal restrição externa do lead time." }
+    ]
+  },
+  "boundaries": {
+    "start": "Branch de release criado",
+    "end": "Versão ativa para 100% dos usuários"
+  },
+  "suppliers": [
+    { "id": "produto", "label": "Time de produto", "scope": "internal" },
+    { "id": "squads", "label": "Squads de desenvolvimento", "scope": "internal" },
+    { "id": "qa", "label": "Laboratório de QA", "scope": "internal" },
+    { "id": "seguranca", "label": "Escritório de segurança", "scope": "internal" },
+    { "id": "lojas", "label": "Lojas de apps (Apple e Google)", "scope": "external" }
+  ],
+  "inputs": [
+    { "id": "backlog", "label": "Backlog aprovado da versão" },
+    { "id": "codigo", "label": "Código no branch de release" },
+    { "id": "plano-testes", "label": "Plano de testes de regressão" },
+    { "id": "pentest", "label": "Laudo de pentest da versão" },
+    { "id": "politicas", "label": "Políticas e credenciais das lojas" }
+  ],
+  "steps": [
+    { "id": "congelar", "label": "Congelar o escopo", "order": 1 },
+    { "id": "regressao", "label": "Executar a regressão", "order": 2 },
+    { "id": "corrigir", "label": "Corrigir bloqueadores", "order": 3 },
+    { "id": "validar-seguranca", "label": "Validar a segurança", "order": 4 },
+    { "id": "submeter", "label": "Submeter às lojas", "order": 5 },
+    { "id": "liberar", "label": "Liberar em etapas", "order": 6, "note": "Rollout gradual: 5%, 25%, 50% e 100% dos usuários, com monitoramento de falhas." }
+  ],
+  "outputs": [
+    { "id": "build", "label": "Build assinado do app", "requirements": [{ "ctq": "bugs críticos", "target": "0" }] },
+    { "id": "notas", "label": "Notas de versão", "requirements": [{ "ctq": "idiomas", "target": "PT-BR e EN" }] },
+    { "id": "relatorio", "label": "Relatório de rollout", "requirements": [{ "ctq": "sessões sem falha", "target": "≥ 99,5%" }] }
+  ],
+  "customers": [
+    { "id": "consumidores", "label": "Consumidores da carteira", "scope": "external", "confirmed": true },
+    { "id": "lojistas", "label": "Lojistas credenciados", "scope": "external", "confirmed": true },
+    { "id": "suporte", "label": "Atendimento ao cliente", "scope": "internal", "confirmed": true },
+    { "id": "compliance", "label": "Compliance e auditoria", "scope": "internal", "confirmed": true }
+  ],
+  "links": [
+    { "from": "produto", "to": "backlog" },
+    { "from": "squads", "to": "codigo" },
+    { "from": "qa", "to": "plano-testes" },
+    { "from": "seguranca", "to": "pentest" },
+    { "from": "lojas", "to": "politicas" },
+    { "from": "backlog", "to": "congelar" },
+    { "from": "codigo", "to": "regressao" },
+    { "from": "plano-testes", "to": "regressao" },
+    { "from": "pentest", "to": "validar-seguranca" },
+    { "from": "politicas", "to": "submeter" },
+    { "from": "submeter", "to": "build" },
+    { "from": "submeter", "to": "notas" },
+    { "from": "liberar", "to": "relatorio" },
+    { "from": "build", "to": "consumidores" },
+    { "from": "build", "to": "lojistas" },
+    { "from": "notas", "to": "lojistas" },
+    { "from": "notas", "to": "suporte" },
+    { "from": "relatorio", "to": "suporte" },
+    { "from": "relatorio", "to": "compliance" }
+  ],
+  "constraints": ["Revisão das lojas em até 48 h", "Regras do Pix do Banco Central"],
+  "measures": ["Lead time do corte do branch ao ar", "Taxa de sessões sem falha"]
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "diagram_type": "bpmn",
+  "meta": {
+    "title": "Atendimento de chamados de TI — TO-BE",
+    "subtitle": "Processo de suporte N1/N2 com SLA de diagnóstico, escalonamento priorizado e fechamento em paralelo.",
+    "locale": "pt-BR",
+    "quality_profile": "showcase",
+    "variant": "to-be",
+    "level": "operational",
+    "conformance": "descriptive+",
+    "views": [
+      { "id": "escalonamento", "label": "Escalonamento por SLA", "focus": ["T2", "B1", "G1", "T7", "G5", "T3"], "note": "Se o N1 não resolver em 4 horas, o temporizador interrompe o diagnóstico e o coordenador prioriza o caso para o N2." },
+      { "id": "fechamento", "label": "Fechamento em paralelo", "focus": ["G3", "T4", "T5", "G4", "T6", "E1"], "note": "Cliente é avisado enquanto o especialista atualiza a base de conhecimento; o chamado só fecha quando os dois terminam." }
+    ]
+  },
+  "pools": [
+    { "id": "P1", "label": "Cliente", "black_box": true },
+    { "id": "P2", "label": "Suporte de TI", "lanes": [
+      { "id": "L1", "label": "Atendente N1" },
+      { "id": "L2", "label": "Especialista N2" },
+      { "id": "L3", "label": "Coordenador de suporte" }
+    ] }
+  ],
+  "nodes": [
+    { "id": "S1", "lane": "L1", "kind": "event", "event": "start", "trigger": "message", "label": "Solicitação recebida" },
+    { "id": "T1", "lane": "L1", "kind": "task", "task_type": "user", "label": "Registrar chamado", "owner": "Atendente N1" },
+    { "id": "T2", "lane": "L1", "kind": "task", "task_type": "user", "label": "Diagnosticar incidente", "sla": "4 h", "note": "Diagnóstico remoto com roteiro padrão do N1." },
+    { "id": "B1", "lane": "L1", "kind": "event", "attached_to": "T2", "trigger": "timer", "label": "4 h sem solução" },
+    { "id": "G1", "lane": "L1", "kind": "gateway", "gateway": "exclusive", "label": "Resolvido no N1?" },
+    { "id": "T7", "lane": "L3", "kind": "task", "task_type": "user", "label": "Priorizar escalonamento" },
+    { "id": "G5", "lane": "L2", "kind": "gateway", "gateway": "exclusive" },
+    { "id": "T3", "lane": "L2", "kind": "task", "task_type": "user", "label": "Resolver incidente", "owner": "Especialista N2" },
+    { "id": "G2", "lane": "L1", "kind": "gateway", "gateway": "exclusive" },
+    { "id": "G3", "lane": "L1", "kind": "gateway", "gateway": "parallel" },
+    { "id": "T4", "lane": "L1", "kind": "task", "task_type": "send", "label": "Notificar solução ao cliente" },
+    { "id": "T5", "lane": "L2", "kind": "task", "task_type": "user", "label": "Atualizar base de conhecimento" },
+    { "id": "D1", "lane": "L2", "kind": "data-store", "label": "Base de conhecimento" },
+    { "id": "G4", "lane": "L1", "kind": "gateway", "gateway": "parallel" },
+    { "id": "T6", "lane": "L1", "kind": "task", "task_type": "user", "label": "Encerrar chamado" },
+    { "id": "E1", "lane": "L1", "kind": "event", "event": "end", "label": "Chamado encerrado" }
+  ],
+  "flows": [
+    { "id": "f1", "from": "S1", "to": "T1" },
+    { "id": "f2", "from": "T1", "to": "T2" },
+    { "id": "f3", "from": "T2", "to": "G1" },
+    { "id": "f4", "from": "G1", "to": "G2", "label": "Sim", "default": true },
+    { "id": "f5", "from": "G1", "to": "G5", "label": "Não" },
+    { "id": "f6", "from": "B1", "to": "T7" },
+    { "id": "f7", "from": "T7", "to": "G5" },
+    { "id": "f8", "from": "G5", "to": "T3" },
+    { "id": "f9", "from": "T3", "to": "G2" },
+    { "id": "f10", "from": "G2", "to": "G3" },
+    { "id": "f11", "from": "G3", "to": "T4" },
+    { "id": "f12", "from": "G3", "to": "T5" },
+    { "id": "f13", "from": "T4", "to": "G4" },
+    { "id": "f14", "from": "T5", "to": "G4" },
+    { "id": "f15", "from": "G4", "to": "T6" },
+    { "id": "f16", "from": "T6", "to": "E1" },
+    { "id": "m1", "type": "message", "from": "P1", "to": "S1", "label": "Solicitação de suporte" },
+    { "id": "m2", "type": "message", "from": "T4", "to": "P1", "label": "Aviso de solução" },
+    { "id": "a1", "type": "association", "from": "T5", "to": "D1" }
+  ],
+  "happy_path": ["S1", "T1", "T2", "G1", "G2", "G3", "T4", "G4", "T6", "E1"]
+}

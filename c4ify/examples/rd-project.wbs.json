@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "diagram_type": "wbs",
+  "meta": {
+    "title": "EAP — Plataforma SmartDoc IA v1",
+    "locale": "pt-BR",
+    "quality_profile": "showcase",
+    "units": { "effort": "h" },
+    "views": [
+      { "id": "gestao", "label": "Gestão do projeto", "focus": ["gp", "gp-rel", "gp-final"], "note": "Gestão é 100% do escopo também: sem ela a regra dos 100% falha." },
+      { "id": "modelo", "label": "Modelo de classificação", "focus": ["modelo", "dataset", "modelo-v1", "otimizacao"], "note": "O pacote de otimização é de planejamento: será detalhado na onda seguinte." }
+    ]
+  },
+  "elements": [
+    { "id": "raiz", "label": "Plataforma SmartDoc IA v1" },
+    { "id": "gp", "parent": "raiz", "label": "Gestão do Projeto", "common": "project-management", "control_account": true, "owner": "GP" },
+    { "id": "gp-rel", "parent": "gp", "label": "Planos e relatórios de acompanhamento", "effort": 120, "owner": "GP",
+      "dictionary": { "description": "Plano do projeto, relatórios mensais de progresso e atas de marco.", "acceptance": ["Relatórios mensais aprovados pelo cliente"] } },
+    { "id": "gp-final", "parent": "gp", "label": "Relatório técnico final", "effort": 80, "owner": "GP",
+      "dictionary": { "description": "Relatório final de resultados e prestação de contas.", "acceptance": ["Relatório entregue e aceito"] } },
+    { "id": "ingestao", "parent": "raiz", "label": "Módulo de Ingestão de Dados", "control_account": true, "owner": "Tech Lead" },
+    { "id": "ing-req", "parent": "ingestao", "label": "Especificação de requisitos de ingestão", "effort": 80, "owner": "Tech Lead",
+      "dictionary": { "description": "Requisitos funcionais e não funcionais dos conectores.", "acceptance": ["Especificação revisada e assinada"] } },
+    { "id": "ing-con", "parent": "ingestao", "label": "Conectores de fontes (PDF, DOCX, e-mail)", "effort": 320, "owner": "Tech Lead",
+      "dictionary": { "description": "Conectores de extração com normalização de texto.", "acceptance": ["Três formatos ingeridos com 99% de sucesso"] } },
+    { "id": "ing-test", "parent": "ingestao", "label": "Suíte de testes de ingestão", "effort": 120, "owner": "Tech Lead",
+      "dictionary": { "description": "Testes automatizados de regressão da ingestão.", "acceptance": ["Cobertura mínima de 80%"] } },
+    { "id": "modelo", "parent": "raiz", "label": "Modelo de Classificação de Documentos", "control_account": true, "owner": "ML Lead" },
+    { "id": "dataset", "parent": "modelo", "label": "Conjunto de treino anotado", "effort": 240, "owner": "ML Lead",
+      "dictionary": { "description": "Base anotada com 20 mil documentos em 12 classes.", "acceptance": ["Concordância entre anotadores acima de 0,8"] } },
+    { "id": "modelo-v1", "parent": "modelo", "label": "Modelo treinado v1 e relatório de experimentos", "effort": 400, "owner": "ML Lead",
+      "dictionary": { "description": "Modelo de referência com relatório comparativo de experimentos.", "acceptance": ["F1 macro acima de 0,85 no conjunto de teste"] } },
+    { "id": "otimizacao", "parent": "modelo", "label": "Pacote de otimização do modelo", "kind": "planning-package", "effort": 200, "owner": "ML Lead",
+      "dictionary": { "description": "Otimização dos meses 9 a 12, detalhada na próxima onda.", "acceptance": ["Plano detalhado aprovado no mês 8"] } },
+    { "id": "integrado", "parent": "raiz", "label": "Sistema Integrado", "control_account": true, "owner": "Tech Lead" },
+    { "id": "build", "parent": "integrado", "label": "Build integrado de release", "effort": 160, "owner": "Tech Lead",
+      "dictionary": { "description": "Pacote implantável com ingestão e modelo integrados.", "acceptance": ["Implantação em homologação sem falhas"] } },
+    { "id": "validacao", "parent": "integrado", "label": "Relatório de validação do sistema", "effort": 120, "owner": "Tech Lead",
+      "dictionary": { "description": "Validação ponta a ponta contra os critérios do projeto.", "acceptance": ["Todos os critérios de aceite verificados"] } }
+  ]
+}

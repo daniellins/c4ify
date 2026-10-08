@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "diagram_type": "vsm",
+  "meta": {
+    "title": "MFV — Da ideia à produção",
+    "subtitle": "Fluxo de entrega de software do portal de clientes: pedidos de mudança da triagem ao deploy em produção.",
+    "locale": "pt-BR",
+    "quality_profile": "showcase",
+    "variant": "office",
+    "state": "current",
+    "value_stream": "Da ideia à produção — portal de clientes",
+    "champion": "Head de Engenharia",
+    "date": "2026-09-24",
+    "demand": { "qty": 40, "period": "month", "working_days": 20, "unit": "pedidos" },
+    "work_hours_per_day": 8,
+    "units": { "pt": "h", "lt": "d" },
+    "totals": { "lead_time": 25, "process_time": 28.5, "activity_ratio_pct": 14.25, "rolled_pct_ca": 30.5 },
+    "views": [
+      { "id": "espera", "label": "Onde o pedido espera", "focus": ["triagem", "fila-ideias", "deploy", "fila-release"], "note": "Triagem e release somam 10 dos 25 dias de lead time, quase tudo em fila." },
+      { "id": "qualidade", "label": "Qualidade na origem", "focus": ["triagem", "testes", "fila-testes"], "note": "%C&A de 70% na triagem e 75% nos testes derrubam o acumulado para 30,5%." }
+    ]
+  },
+  "nodes": [
+    { "id": "cliente", "kind": "customer", "label": "Áreas de negócio", "description": "Solicitantes das mudanças no portal de clientes." },
+    { "id": "sistemas", "kind": "control", "label": "Jira + GitHub", "role": "Backlog, PRs e pipeline CI", "description": "Sistemas de informação usados por todos os blocos." },
+    { "id": "fila-ideias", "kind": "queue", "label": "Ideias em espera", "before": "triagem", "qty": 60 },
+    { "id": "triagem", "kind": "process", "label": "Entrada e triagem", "role": "Product Owner", "pt": 0.5, "lt": 5, "pct_ca": 70, "staff": 1, "description": "Avalia valor e urgência do pedido e prioriza o backlog." },
+    { "id": "fila-refino", "kind": "queue", "label": "Aguardando refinamento", "before": "refinamento", "qty": 25 },
+    { "id": "refinamento", "kind": "process", "label": "Refinamento e especificação", "role": "PO + Tech Lead", "pt": 4, "lt": 3, "pct_ca": 80, "staff": 2, "description": "Escreve critérios de aceite e divide o pedido em histórias." },
+    { "id": "fila-dev", "kind": "queue", "label": "Prontas para dev", "before": "desenvolvimento", "qty": 18 },
+    { "id": "desenvolvimento", "kind": "process", "label": "Desenvolvimento", "role": "Time de desenvolvimento", "pt": 16, "lt": 6, "pct_ca": 85, "staff": 5, "description": "Implementação e testes unitários da história." },
+    { "id": "fila-revisao", "kind": "queue", "label": "PRs abertos", "before": "revisao", "qty": 12 },
+    { "id": "revisao", "kind": "process", "label": "Revisão de código", "role": "Pares", "pt": 1, "lt": 2, "pct_ca": 90, "staff": 2, "description": "Revisão do pull request por outro desenvolvedor." },
+    { "id": "fila-testes", "kind": "queue", "label": "Fila de testes", "before": "testes", "qty": 15 },
+    { "id": "testes", "kind": "process", "label": "Testes e QA", "role": "Analistas de QA", "pt": 6, "lt": 4, "pct_ca": 75, "staff": 2, "description": "Testes funcionais e de regressão em homologação, majoritariamente manuais." },
+    { "id": "fila-release", "kind": "queue", "label": "Aguardando release", "before": "deploy", "qty": 20 },
+    { "id": "deploy", "kind": "process", "label": "Release e deploy", "role": "Ops + comitê de mudanças", "pt": 1, "lt": 5, "pct_ca": 95, "staff": 1, "description": "Aprovação semanal no comitê de mudanças e deploy em produção." }
+  ],
+  "flows": [
+    { "id": "pedidos", "from": "cliente", "to": "sistemas", "channel": "info", "kind": "electronic", "label": "Pedidos de mudança" },
+    { "id": "backlog", "from": "sistemas", "to": "triagem", "channel": "info", "kind": "electronic", "label": "Backlog priorizado" },
+    { "id": "sprint", "from": "sistemas", "to": "desenvolvimento", "channel": "info", "kind": "electronic", "label": "Sprint planejada" },
+    { "id": "cab", "from": "sistemas", "to": "deploy", "channel": "info", "kind": "manual", "label": "Aprovação do CAB" },
+    { "id": "f1", "from": "triagem", "to": "refinamento", "channel": "material", "kind": "push" },
+    { "id": "f2", "from": "refinamento", "to": "desenvolvimento", "channel": "material", "kind": "push" },
+    { "id": "f3", "from": "desenvolvimento", "to": "revisao", "channel": "material", "kind": "push" },
+    { "id": "f4", "from": "revisao", "to": "testes", "channel": "material", "kind": "push" },
+    { "id": "f5", "from": "testes", "to": "deploy", "channel": "material", "kind": "push" },
+    { "id": "entrega", "from": "deploy", "to": "cliente", "channel": "material", "kind": "push", "label": "Deploy semanal" }
+  ]
+}

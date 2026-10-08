@@ -1,0 +1,56 @@
+{
+  "skill_name": "bizify",
+  "evals": [
+    {
+      "id": 1,
+      "name": "eap-pdi-roll-up",
+      "prompt": "Preciso da EAP do projeto de P&D \"VisionQC\" (inspeção visual por IA numa linha de montagem, 10 meses) para o plano de trabalho. Entregas: gestão do projeto (plano e relatórios mensais 90h, relatório final 60h); base de imagens (coleta em linha 160h, rotulagem 240h); modelo de detecção (treinamento v1 320h, otimização para edge 180h — essa ainda sem detalhamento, é da segunda onda); sistema embarcado (firmware da câmera 200h, integração com o CLP 150h, testes de campo 120h). O gerente disse que o total é 1.600h. Gere o diagrama interativo em HTML.",
+      "expected_output": "An interactive HTML WBS with one root, project management at level 2, deliverables as nouns, work packages as leaves, edge optimization as a planning package, computed roll-up (1,520 h), and the discrepancy with the manager's 1,600 h reported instead of silently absorbed.",
+      "files": [],
+      "assertions": [
+        "Output is a standalone HTML file that renders an SVG diagram",
+        "Exactly one root element for VisionQC",
+        "Project management appears as a level-2 element",
+        "Every leaf carries its given hours and parents show roll-ups",
+        "The total shown equals 1.520 h (sum of the packages)",
+        "The response tells the user the stated 1.600 h does not match the 1.520 h sum",
+        "The edge-optimization package is marked as a planning package (rolling wave) or equivalent",
+        "Portuguese text keeps full accents (Gestão, Relatório, Integração)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "bpmn-purchase-approval",
+      "prompt": "Modele em BPMN o processo AS-IS de requisição de compras: o solicitante preenche a requisição no ERP; o gestor da área aprova ou reprova (se reprovar, volta pro solicitante ajustar); acima de R$ 10 mil também passa pela diretoria financeira; aprovada, Compras faz cotação com fornecedores (o fornecedor é externo e responde a cotação por e-mail) e emite o pedido. Se a cotação não voltar em 3 dias úteis, Compras cobra o fornecedor. Quero um HTML interativo para apresentar ao cliente.",
+      "expected_output": "A BPMN 2.0 diagram with a pool for the company (lanes: Solicitante, Gestor, Diretoria Financeira, Compras) and a separate black-box pool for the supplier, message flows only between pools, exclusive gateways with labelled outcomes (aprovado/reprovado, acima de 10 mil), a rework loop, a timer (3 dias úteis) for the follow-up, start and named end events.",
+      "files": [],
+      "assertions": [
+        "Output is a standalone HTML file that renders an SVG diagram",
+        "Supplier is a separate pool (not a lane of the company pool)",
+        "Interaction with the supplier uses message flows (dashed), not sequence flows",
+        "There are lanes for the requester, area manager, finance board and purchasing",
+        "Exclusive gateway outcomes are labelled (approve/reject and the R$ 10 mil threshold)",
+        "The rework loop back to the requester is present",
+        "A timer event models the 3-business-day follow-up",
+        "Tasks use verb + object labels in Portuguese with accents"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "vsm-support-office",
+      "prompt": "Mapeie o fluxo de valor atual do nosso atendimento de incidentes de TI (estado atual). Etapas: registro no portal (PT 10 min, LT 2 h, %C&A 60%), triagem N1 (PT 20 min, LT 1 dia, %C&A 80%), diagnóstico N2 (PT 2 h, LT 3 dias, %C&A 70%), correção (PT 3 h, LT 2 dias, %C&A 90%), validação com o usuário (PT 15 min, LT 1 dia, %C&A 95%). Trabalhamos 8 h por dia. Quero ver o lead time total, a eficiência do fluxo e o %C&A acumulado num HTML interativo.",
+      "expected_output": "An office-variant VSM with five process blocks, a timeline ladder, and computed totals: LT 7.25 days (58 h), PT 5.75 h, activity ratio ~9.9%, rolled %C&A ~28.7%.",
+      "files": [],
+      "assertions": [
+        "Output is a standalone HTML file that renders an SVG diagram",
+        "Five process blocks in the given order, each showing PT, LT and %C&A",
+        "A timeline ladder (lead time vs process time) is drawn",
+        "Total process time is 5,75 h (or 345 min)",
+        "Total lead time is 58 h / 7,25 days (2 h counted as 0,25 day)",
+        "Activity ratio / flow efficiency is about 9,9%",
+        "Rolled %C&A is about 28,7%",
+        "Customer (usuário) and trigger are represented"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bizify/bizify/schemas/impactmap.schema.json",
+  "title": "Bizify Impact Map (Adzic)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "diagram_type", "meta", "nodes"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "diagram_type": { "const": "impactmap" },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "subtitle": { "type": "string" },
+        "output": { "type": "string" },
+        "locale": { "$ref": "common.schema.json#/$defs/locale" },
+        "animation": { "$ref": "common.schema.json#/$defs/animation" },
+        "visual_preset": { "$ref": "common.schema.json#/$defs/visualPreset" },
+        "quality_profile": { "$ref": "common.schema.json#/$defs/qualityProfile" },
+        "views": { "$ref": "common.schema.json#/$defs/guidedViews" },
+        "waivers": { "$ref": "common.schema.json#/$defs/waivers" },
+        "viewBox": { "$ref": "common.schema.json#/$defs/viewBox" },
+        "legend": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": { "$ref": "common.schema.json#/$defs/legendMode" },
+            "entries": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "impact-goal": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "impact-actor": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "impact-change": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "impact-deliverable": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "path": { "$ref": "common.schema.json#/$defs/legendEntry" }
+              }
+            }
+          }
+        },
+        "node_width": { "type": "number", "minimum": 140, "maximum": 260 },
+        "summary": { "type": "boolean" }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "level", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "level": { "enum": ["goal", "actor", "impact", "deliverable"] },
+          "parent": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 90 },
+          "note": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "actor_type": { "enum": ["primary", "secondary", "off-stage"] },
+          "direction": { "enum": ["increase", "decrease", "start", "stop"] },
+          "priority": { "type": "integer", "minimum": 1, "maximum": 9 },
+          "on_path": { "type": "boolean" },
+          "deliverable_kind": { "enum": ["software", "organisational"] },
+          "metric": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+              "meter": { "type": "string", "minLength": 1, "maxLength": 120 },
+              "baseline": { "type": "number" },
+              "constraint": { "type": "number" },
+              "target": { "type": "number" },
+              "unit": { "type": "string", "minLength": 1, "maxLength": 20 },
+              "deadline": { "type": "string", "minLength": 1, "maxLength": 20 }
+            }
+          }
+        }
+      }
+    },
+    "cards": { "$ref": "common.schema.json#/$defs/cards" }
+  }
+}

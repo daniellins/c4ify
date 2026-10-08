@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "diagram_type": "storymap",
+  "meta": {
+    "title": "Mapa de Histórias — Lojistas PagaJá",
+    "locale": "pt-BR",
+    "quality_profile": "showcase",
+    "mode": "future",
+    "frame": {
+      "what": "Autocadastro de lojistas no app, do login ao primeiro saque.",
+      "who": "Dona Ana, dona de padaria (usuária); adquirente parceiro (decide).",
+      "why": "Cortar o custo de credenciamento e antecipar a primeira venda."
+    },
+    "views": [
+      { "id": "esqueleto", "label": "Esqueleto andante (entrega 1)", "focus": ["h-login-sms", "h-cnpj-manual", "h-selfie-foto", "h-qr-estatico", "h-push", "h-saldo"], "note": "A primeira fatia atravessa toda a espinha dorsal: do login ao saldo, sem nenhuma automação." },
+      { "id": "riscos", "label": "Riscos da aprovação", "focus": ["enviar-cnpj", "tirar-selfie", "h-cnpj-auto", "h-prova-vida"], "note": "Consulta automática do CNPJ e prova de vida são as histórias mais arriscadas: começam cedo na entrega 2." }
+    ]
+  },
+  "personas": [
+    { "id": "ana", "name": "Dona Ana", "sketch": "dona de padaria de bairro, usa Android e não tem maquininha.", "role": "user" },
+    { "id": "adquirente", "name": "Adquirente parceiro", "sketch": "aprova o credenciamento e remunera a carteira por transação.", "role": "chooser" }
+  ],
+  "activities": [
+    { "id": "criar-conta", "label": "Criar a conta", "order": 1, "persona": "ana" },
+    { "id": "comprovar", "label": "Comprovar o negócio", "order": 2, "persona": "ana" },
+    { "id": "receber", "label": "Receber pagamentos", "order": 3, "persona": "ana" },
+    { "id": "gerenciar", "label": "Gerenciar o dinheiro", "order": 4, "persona": "ana" }
+  ],
+  "steps": [
+    { "id": "criar-login", "activity": "criar-conta", "label": "Criar login", "order": 1 },
+    { "id": "enviar-cnpj", "activity": "comprovar", "label": "Enviar CNPJ", "order": 1 },
+    { "id": "tirar-selfie", "activity": "comprovar", "label": "Tirar selfie", "order": 2 },
+    { "id": "exibir-qr", "activity": "receber", "label": "Exibir QR code", "order": 1 },
+    { "id": "confirmar", "activity": "receber", "label": "Confirmar pagamento", "order": 2 },
+    { "id": "consultar-saldo", "activity": "gerenciar", "label": "Consultar saldo", "order": 1 },
+    { "id": "sacar", "activity": "gerenciar", "label": "Sacar via Pix", "order": 2 }
+  ],
+  "releases": [
+    { "id": "r1", "label": "Esqueleto andante", "order": 1, "goal": "Primeiro pagamento recebido em até 24 h após o cadastro.", "success_metric": "% de lojistas pagos em ≤ 24 h" },
+    { "id": "r2", "label": "Aprovação no mesmo dia", "order": 2, "goal": "Credenciamento aprovado em até 1 dia, sem revisão manual.", "success_metric": "tempo médio de aprovação" },
+    { "id": "r3", "label": "Uso recorrente", "order": 3, "goal": "Lojista volta a vender na semana seguinte.", "success_metric": "% de lojistas ativos na 2ª semana" }
+  ],
+  "stories": [
+    { "id": "h-login-sms", "step": "criar-login", "release": "r1", "priority": 1, "label": "Login por celular com código SMS" },
+    { "id": "h-cnpj-manual", "step": "enviar-cnpj", "release": "r1", "priority": 1, "label": "Revisão manual do CNPJ pelo backoffice" },
+    { "id": "h-selfie-foto", "step": "tirar-selfie", "release": "r1", "priority": 1, "label": "Foto da selfie para revisão manual" },
+    { "id": "h-qr-estatico", "step": "exibir-qr", "release": "r1", "priority": 1, "label": "QR code estático para imprimir" },
+    { "id": "h-push", "step": "confirmar", "release": "r1", "priority": 1, "label": "Aviso push de pagamento recebido" },
+    { "id": "h-saldo", "step": "consultar-saldo", "release": "r1", "priority": 1, "label": "Saldo do dia na tela inicial" },
+
+    { "id": "h-google", "step": "criar-login", "release": "r2", "priority": 2, "label": "Entrar com conta Google" },
+    { "id": "h-cnpj-auto", "step": "enviar-cnpj", "release": "r2", "priority": 2, "label": "Consulta automática do CNPJ na Receita", "risky": true, "note": "Depende da API de dados cadastrais; latência e disponibilidade ainda não medidas." },
+    { "id": "h-prova-vida", "step": "tirar-selfie", "release": "r2", "priority": 2, "label": "Prova de vida automática na selfie", "risky": true },
+    { "id": "h-qr-dinamico", "step": "exibir-qr", "release": "r2", "priority": 2, "label": "QR dinâmico com valor da venda" },
+    { "id": "h-saque-pix", "step": "sacar", "release": "r2", "priority": 1, "label": "Saque via Pix para a conta do lojista" },
+
+    { "id": "h-convite", "step": "criar-login", "release": "r3", "priority": 3, "label": "Convidar funcionários da loja" },
+    { "id": "h-estorno", "step": "confirmar", "release": "r3", "priority": 2, "label": "Comprovante e estorno da venda" },
+    { "id": "h-relatorio", "step": "consultar-saldo", "release": "r3", "priority": 2, "label": "Relatório de vendas da semana" }
+  ]
+}

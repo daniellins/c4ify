@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bizify/bizify/schemas/wbs.schema.json",
+  "title": "Bizify WBS / EAP diagram",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "diagram_type",
+    "meta",
+    "elements"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "diagram_type": {
+      "const": "wbs"
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string"
+        },
+        "locale": {
+          "$ref": "common.schema.json#/$defs/locale"
+        },
+        "animation": {
+          "$ref": "common.schema.json#/$defs/animation"
+        },
+        "visual_preset": {
+          "$ref": "common.schema.json#/$defs/visualPreset"
+        },
+        "quality_profile": {
+          "$ref": "common.schema.json#/$defs/qualityProfile"
+        },
+        "views": {
+          "$ref": "common.schema.json#/$defs/guidedViews"
+        },
+        "waivers": {
+          "$ref": "common.schema.json#/$defs/waivers"
+        },
+        "viewBox": {
+          "$ref": "common.schema.json#/$defs/viewBox"
+        },
+        "legend": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "$ref": "common.schema.json#/$defs/legendMode"
+            },
+            "entries": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "project": {
+                  "$ref": "common.schema.json#/$defs/legendEntry"
+                },
+                "phase": {
+                  "$ref": "common.schema.json#/$defs/legendEntry"
+                },
+                "deliverable": {
+                  "$ref": "common.schema.json#/$defs/legendEntry"
+                },
+                "work-package": {
+                  "$ref": "common.schema.json#/$defs/legendEntry"
+                },
+                "planning-package": {
+                  "$ref": "common.schema.json#/$defs/legendEntry"
+                },
+                "control-account": {
+                  "$ref": "common.schema.json#/$defs/legendEntry"
+                }
+              }
+            }
+          }
+        },
+        "orientation": {
+          "enum": [
+            "deliverable",
+            "phase"
+          ]
+        },
+        "layout": {
+          "enum": [
+            "hybrid",
+            "tree"
+          ]
+        },
+        "node_width": {
+          "type": "number",
+          "minimum": 130,
+          "maximum": 240
+        },
+        "units": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "effort": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 12
+            },
+            "cost": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 6
+            }
+          }
+        },
+        "root_code": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9]+$"
+        },
+        "show_codes": {
+          "type": "boolean"
+        },
+        "summary": {
+          "type": "boolean"
+        },
+        "dictionary_card": {
+          "type": "boolean"
+        },
+        "effort_band": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "min",
+            "max"
+          ],
+          "properties": {
+            "min": {
+              "type": "number",
+              "minimum": 0
+            },
+            "max": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "reference_total": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "effort": {
+              "type": "number",
+              "minimum": 0
+            },
+            "cost": {
+              "type": "number",
+              "minimum": 0
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            }
+          },
+          "minProperties": 1
+        },
+        "root_unnumbered": {
+          "type": "boolean"
+        },
+        "color_by": {
+          "enum": [
+            "kind",
+            "group"
+          ]
+        },
+        "groups": {
+          "type": "object",
+          "maxProperties": 7,
+          "propertyNames": {
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "additionalProperties": {
+            "enum": [
+              "frontend",
+              "backend",
+              "database",
+              "cloud",
+              "security",
+              "messagebus",
+              "external"
+            ]
+          }
+        }
+      }
+    },
+    "elements": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 80,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "common.schema.json#/$defs/id"
+          },
+          "parent": {
+            "$ref": "common.schema.json#/$defs/id"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "sublabel": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 48
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9]+(\\.[0-9]+)*$"
+          },
+          "kind": {
+            "enum": [
+              "project",
+              "phase",
+              "deliverable",
+              "work-package",
+              "planning-package"
+            ]
+          },
+          "common": {
+            "enum": [
+              "project-management",
+              "systems-engineering",
+              "integration-test",
+              "documentation",
+              "training",
+              "dissemination"
+            ]
+          },
+          "control_account": {
+            "type": "boolean"
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "effort": {
+            "type": "number",
+            "minimum": 0
+          },
+          "cost": {
+            "type": "number",
+            "minimum": 0
+          },
+          "stage": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "status": {
+            "enum": [
+              "planned",
+              "in-progress",
+              "done",
+              "at-risk"
+            ]
+          },
+          "dictionary": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 400
+              },
+              "acceptance": {
+                "type": "array",
+                "maxItems": 6,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "assumptions": {
+                "type": "array",
+                "maxItems": 6,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "milestones": {
+                "type": "array",
+                "maxItems": 6,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "group": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          }
+        }
+      }
+    },
+    "cards": {
+      "$ref": "common.schema.json#/$defs/cards"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "diagram_type": "vsm",
+  "meta": {
+    "title": "MFV — Suportes estampados",
+    "subtitle": "Estado futuro com supermercados, FIFO e um único processo puxador.",
+    "locale": "pt-BR",
+    "quality_profile": "showcase",
+    "variant": "manufacturing",
+    "state": "future",
+    "value_stream": "Suportes estampados — família S",
+    "champion": "Gerente de Produção",
+    "date": "2026-09-24",
+    "demand": { "qty": 9600, "period": "month", "working_days": 20, "unit": "peças" },
+    "available_time_s": 27600,
+    "totals": { "lead_time": 5.2, "process_time": 98, "takt_s": 57.5, "inventory_days": 5.2 },
+    "views": [
+      { "id": "puxador", "label": "Processo puxador", "focus": ["montagem", "k2", "fifo-montagem", "fg"], "note": "Só a montagem recebe programação; o resto é puxado por supermercado ou FIFO." }
+    ]
+  },
+  "nodes": [
+    { "id": "usina", "kind": "supplier", "label": "Usina de aço", "delivery": "Bobinas 2x/semana" },
+    { "id": "pcp", "kind": "control", "label": "PCP", "role": "MRP + quadro heijunka" },
+    { "id": "montadora", "kind": "customer", "label": "Montadora" },
+    { "id": "bobinas", "kind": "inventory", "label": "Bobinas", "before": "estampagem", "qty": 1440 },
+    { "id": "estampagem", "kind": "process", "label": "Estampagem", "ct_s": 1, "co_min": 10, "uptime_pct": 85, "operators": 1, "epe": "1 dia" },
+    { "id": "sm-estampados", "kind": "supermarket", "label": "Estampados", "after": "estampagem", "qty": 480, "owner": "estampagem" },
+    { "id": "soldagem", "kind": "process", "label": "Soldagem", "ct_s": 45, "co_min": 10, "uptime_pct": 90, "operators": 1 },
+    { "id": "fifo-montagem", "kind": "fifo", "label": "Pista FIFO", "before": "montagem", "qty": 96, "max_qty": 96 },
+    { "id": "montagem", "kind": "process", "label": "Montagem", "ct_s": 52, "co_min": 0, "uptime_pct": 100, "operators": 2, "pacemaker": true },
+    { "id": "fg", "kind": "supermarket", "label": "Expedição", "after": "montagem", "qty": 480, "owner": "montagem" },
+    { "id": "k1", "kind": "kaizen", "label": "Troca rápida (SMED)", "target": "estampagem", "description": "C/O de 60 para 10 min, permitindo EPE diário.", "waste": ["inventory", "waiting"] },
+    { "id": "k2", "kind": "kaizen", "label": "Rebalancear montagem", "target": "montagem", "description": "C/T de 62 para 52 s, abaixo do takt de 57,5 s.", "waste": ["waiting", "overprocessing"] }
+  ],
+  "flows": [
+    { "id": "pedidos", "from": "montadora", "to": "pcp", "channel": "info", "kind": "electronic", "label": "Pedidos diários" },
+    { "id": "previsao", "from": "pcp", "to": "usina", "channel": "info", "kind": "electronic", "label": "Previsão semanal" },
+    { "id": "programa", "from": "pcp", "to": "montagem", "channel": "info", "kind": "manual", "label": "Programa diário" },
+    { "id": "recebimento", "from": "usina", "to": "estampagem", "channel": "material", "kind": "shipment", "label": "2x/semana" },
+    { "id": "retirada", "from": "estampagem", "to": "soldagem", "channel": "material", "kind": "withdrawal" },
+    { "id": "fifo", "from": "soldagem", "to": "montagem", "channel": "material", "kind": "fifo" },
+    { "id": "expedicao", "from": "montagem", "to": "montadora", "channel": "material", "kind": "pull", "label": "Retirada diária" }
+  ]
+}

@@ -1,0 +1,29 @@
+name: Methodology correction
+description: A rule is wrong, missing, too strict or too loose — with a source
+labels: ["methodology"]
+body:
+  - type: input
+    id: rule
+    attributes:
+      label: Rule id (or "new rule")
+      placeholder: R-BPMN-19
+    validations:
+      required: true
+  - type: textarea
+    id: claim
+    attributes:
+      label: What the rule should say, and at which level (HARD / SOFT / opt-in)
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source
+      description: Standard, book or author with section/page. HARD rules need a primary (Gold) source.
+    validations:
+      required: true
+  - type: textarea
+    id: spec
+    attributes:
+      label: Spec showing current vs expected behaviour
+      render: json

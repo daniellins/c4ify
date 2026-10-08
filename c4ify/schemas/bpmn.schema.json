@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bizify/bizify/schemas/bpmn.schema.json",
+  "title": "Bizify BPMN 2.0 process diagram (Descriptive+ palette)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "diagram_type", "meta", "pools", "nodes", "flows"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "diagram_type": { "const": "bpmn" },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "subtitle": { "type": "string" },
+        "output": { "type": "string" },
+        "locale": { "$ref": "common.schema.json#/$defs/locale" },
+        "animation": { "$ref": "common.schema.json#/$defs/animation" },
+        "visual_preset": { "$ref": "common.schema.json#/$defs/visualPreset" },
+        "quality_profile": { "$ref": "common.schema.json#/$defs/qualityProfile" },
+        "views": { "$ref": "common.schema.json#/$defs/guidedViews" },
+        "waivers": { "$ref": "common.schema.json#/$defs/waivers" },
+        "viewBox": { "$ref": "common.schema.json#/$defs/viewBox" },
+        "legend": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": { "$ref": "common.schema.json#/$defs/legendMode" },
+            "entries": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "start-event": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "intermediate-event": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "end-event": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "task": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "subprocess": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "call-activity": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "gateway": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "data-object": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "data-store": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "annotation": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "black-box-pool": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "sequence-flow": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "message-flow": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "association": { "$ref": "common.schema.json#/$defs/legendEntry" }
+              }
+            }
+          }
+        },
+        "variant": { "enum": ["as-is", "to-be"] },
+        "level": { "enum": ["strategic", "operational"] },
+        "conformance": { "enum": ["descriptive", "descriptive+", "analytic"] },
+        "task_width": { "type": "number", "minimum": 100, "maximum": 200 },
+        "summary": { "type": "boolean" }
+      }
+    },
+    "pools": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "black_box": { "type": "boolean" },
+          "lanes": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "label"],
+              "properties": {
+                "id": { "$ref": "common.schema.json#/$defs/id" },
+                "label": { "type": "string", "minLength": 1, "maxLength": 48 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 60,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "pool": { "$ref": "common.schema.json#/$defs/id" },
+          "lane": { "$ref": "common.schema.json#/$defs/id" },
+          "kind": { "enum": ["event", "task", "subprocess", "call-activity", "gateway", "data-object", "data-store", "annotation"] },
+          "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "event": { "enum": ["start", "intermediate", "end"] },
+          "trigger": { "enum": ["none", "message", "timer", "error", "signal", "escalation", "conditional", "terminate", "link"] },
+          "throwing": { "type": "boolean" },
+          "attached_to": { "$ref": "common.schema.json#/$defs/id" },
+          "interrupting": { "type": "boolean" },
+          "task_type": { "enum": ["none", "user", "service", "manual", "send", "receive", "script", "business-rule"] },
+          "gateway": { "enum": ["exclusive", "parallel", "inclusive", "event-based"] },
+          "marker": { "enum": ["loop", "mi-parallel", "mi-sequential"] },
+          "col": { "type": "integer", "minimum": 1, "maximum": 30 },
+          "row": { "type": "integer", "minimum": 0, "maximum": 5 },
+          "owner": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "sla": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "note": { "type": "string", "minLength": 1, "maxLength": 240 }
+        }
+      }
+    },
+    "flows": {
+      "type": "array",
+      "maxItems": 120,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "from": { "$ref": "common.schema.json#/$defs/id" },
+          "to": { "$ref": "common.schema.json#/$defs/id" },
+          "type": { "enum": ["sequence", "message", "association"] },
+          "label": { "type": "string", "minLength": 1, "maxLength": 48 },
+          "default": { "type": "boolean" },
+          "conditional": { "type": "boolean" },
+          "route": { "enum": ["auto", "horizontal-first", "vertical-first"] }
+        }
+      }
+    },
+    "happy_path": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 40,
+      "items": { "$ref": "common.schema.json#/$defs/id" }
+    },
+    "cards": { "$ref": "common.schema.json#/$defs/cards" }
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bizify/bizify/schemas/sipoc.schema.json",
+  "title": "Bizify SIPOC (Suppliers, Inputs, Process, Outputs, Customers)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "diagram_type", "meta", "suppliers", "inputs", "steps", "outputs", "customers"],
+  "$defs": {
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/id" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 70 },
+        "note": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "scope": { "enum": ["internal", "external"] }
+      }
+    },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ctq"],
+      "properties": {
+        "ctq": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "target": { "type": "string", "minLength": 1, "maxLength": 40 }
+      }
+    },
+    "ids": { "type": "array", "maxItems": 10, "items": { "$ref": "common.schema.json#/$defs/id" } }
+  },
+  "properties": {
+    "schema_version": { "const": 1 },
+    "diagram_type": { "const": "sipoc" },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "subtitle": { "type": "string" },
+        "output": { "type": "string" },
+        "locale": { "$ref": "common.schema.json#/$defs/locale" },
+        "animation": { "$ref": "common.schema.json#/$defs/animation" },
+        "visual_preset": { "$ref": "common.schema.json#/$defs/visualPreset" },
+        "quality_profile": { "$ref": "common.schema.json#/$defs/qualityProfile" },
+        "views": { "$ref": "common.schema.json#/$defs/guidedViews" },
+        "waivers": { "$ref": "common.schema.json#/$defs/waivers" },
+        "viewBox": { "$ref": "common.schema.json#/$defs/viewBox" },
+        "legend": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": { "$ref": "common.schema.json#/$defs/legendMode" },
+            "entries": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sipoc-supplier": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "sipoc-input": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "sipoc-step": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "sipoc-output": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "sipoc-customer": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "sipoc-boundary": { "$ref": "common.schema.json#/$defs/legendEntry" },
+                "link": { "$ref": "common.schema.json#/$defs/legendEntry" }
+              }
+            }
+          }
+        },
+        "variant": { "enum": ["sipoc", "copis"] },
+        "process": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "summary": { "type": "boolean" }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": { "type": "string", "minLength": 1, "maxLength": 70 },
+        "end": { "type": "string", "minLength": 1, "maxLength": 70 }
+      }
+    },
+    "suppliers": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/item" } },
+    "inputs": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 70 },
+          "note": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "supplier": { "$ref": "common.schema.json#/$defs/id" },
+          "steps": { "$ref": "#/$defs/ids" },
+          "requirements": { "type": "array", "maxItems": 3, "items": { "$ref": "#/$defs/requirement" } }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "note": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "order": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 70 },
+          "note": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "from_steps": { "$ref": "#/$defs/ids" },
+          "customers": { "$ref": "#/$defs/ids" },
+          "requirements": { "type": "array", "maxItems": 3, "items": { "$ref": "#/$defs/requirement" } }
+        }
+      }
+    },
+    "customers": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 70 },
+          "note": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "scope": { "enum": ["internal", "external"] },
+          "confirmed": { "type": "boolean" }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "from": { "$ref": "common.schema.json#/$defs/id" },
+          "to": { "$ref": "common.schema.json#/$defs/id" }
+        }
+      }
+    },
+    "constraints": { "type": "array", "maxItems": 6, "items": { "type": "string", "minLength": 1, "maxLength": 120 } },
+    "measures": { "type": "array", "maxItems": 6, "items": { "type": "string", "minLength": 1, "maxLength": 120 } },
+    "cards": { "$ref": "common.schema.json#/$defs/cards" }
+  }
+}
