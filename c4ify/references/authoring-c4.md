@@ -32,16 +32,23 @@ Write every element and relationship **once** in `model`; views only select.
 | `model.relationships[]` | `from`, `to`, `description` (intent, R-C4-03), `technology` (protocol, R-C4-08), `async` (dashed) |
 | `views[].key` | file name of the view (`<key>.html`); ASCII id |
 | `include` / `exclude` | add or remove elements from the default selection |
-| `layout` | `direction` (`TB`/`LR`), `max_per_row`, `element_width`, `gap_x`, `gap_y` |
-| `placement` | `{ "<id>": { "row": n, "col": n } }` overrides the computed cell (col may be .5) |
+| `exclude_relationships` | hide arrows as drawn: `[{ "from": "*", "to": "config" }]` (`*` matches any element) |
+| `label` | short name of the view in the navigation bar (needed when two views share type and scope) |
+| `layout` | pins the search: `direction` (`TB`/`LR`), `max_per_row` (2-8), `element_width`, `gap_x`, `gap_y` (spacing still grows on retries) |
+| `placement` | `{ "<id>": { "row": n, "col": n } }`: visual cell, row 0 at the top, col 0 at the left, `.5` between columns, same meaning in both orientations |
 | `routes` | per visible pair `{ from, to, fromSide, toSide, route, via, labelAt, labelDx, labelDy, labelSegment }` |
 | `chapters` | guided views (≤ 5) focusing elements this view draws |
-| `meta.glossary` | `{ "ERP": "…" }`: explains acronyms, rendered as a card (R-C4-09) |
+| `meta.glossary` | `{ "ERP": "…", "EF Core": "…" }`: explains acronyms (a key with spaces also covers its first word); each view prints the terms it uses under the key (R-C4-09) |
+
+**Limits** (the schema rejects more): element `name` 60 chars, `description` 200,
+`technology` 48; relationship `description` 80, `technology` 40; view `label` 32,
+`title` 120; `placement` `col` in steps of 0.5 (0-20), `row` 0-20; `max_per_row` 2-8;
+`element_width` 160-300; glossary keys 1-16 chars (letters, digits, `& / . + -`, space).
 
 **Author relationships at the lowest level you model.** `component → container`
 also appears as `container → container` in the container view and as
 `system → system` in the context view (implied relationships, merged with a
-count). A relationship authored only at system level does not appear in a
+count shown as "(+N)" on the label and every protocol listed). A relationship authored only at system level does not appear in a
 container view: no container is known to make it.
 
 ## Default selection per view
@@ -60,14 +67,24 @@ container view: no container is known to make it.
   middle, what it calls below.
 - Inside the boundary, rows follow the longest path of relationships; stores
   and queues share the last boundary row; a worker nobody calls sits beside the
-  service it feeds.
+  service it feeds; services shared by two hubs (a frontend and a checkout)
+  sit between them, the second hub below; elements of one row that talk to
+  each other sit side by side.
 - In container/component views, systems called from upper boundary rows stand
   in a side column at their callers' height; those called from the last row
   go below.
-- Views with 4+ layers and few columns flow left to right (`direction: "LR"`).
-- Labels sit on the end of the route no other arrow shares; when no free spot
-  exists, spacing grows automatically (up to 3 times) before an error.
-- Override sparingly: `placement` for one element, `routes` for one arrow.
+- The renderer searches layouts (top-down or left-to-right, 4/6/8 per row,
+  220/260 px boxes, spacing +0 to +84 px) and keeps the first that passes every
+  gate and fits a 1440×900 screen (about 1.7:1 or wider). `layout` pins any
+  of these; `draft` shows which one won and why the others failed.
+- Text size follows the canvas: a wider layout (8 per row) needs larger fonts
+  to stay legible, so the same description may wrap to more lines; shorten it
+  or split the view rather than widening boxes.
+- `layout.fit: "scroll"` accepts a view taller than the screen (for a deliberate
+  big picture); its `visual-check` containment then fails by design.
+- Real systems with 12+ containers or infrastructure every service calls
+  rarely fit one picture: hide shared arrows (`exclude_relationships`) or split
+  the view per flow, then use `placement`/`routes` for the last details.
 
 ## Rules
 
@@ -96,6 +113,8 @@ question for the user; list it in the handoff.
 | `method/R-C4-07` / `R-C4-08` | ask for the technology or protocol; waive as pending if unknown |
 | `method/R-C4-09` | add the acronym to `meta.glossary`, or spell it out |
 | `method/R-C4-10` | split: one container view per system, one component view per container |
+| `[viewport/fit] … needs scrolling` | split the view, hide shared arrows with `exclude_relationships`, or exclude elements |
+| many layout problems at once | run `draft`, look at the red outlines, start with the element named most often |
 | `label … has no free spot` | `routes[{from,to,labelDx/labelDy}]` for that pair, or raise `layout.gap_x`/`gap_y` |
 | `clean-flow/edge-through-node` | `placement` to move the blocking element, or `routes` with `fromSide`/`toSide` |
 | `composition/proper-crossing` (showcase) | swap two elements with `placement`, or route one arrow around with `via` |

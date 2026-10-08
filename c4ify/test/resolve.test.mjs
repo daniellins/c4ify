@@ -89,7 +89,7 @@ test('drill-down opens the next level about the element', () => {
   assert.equal(drillTarget(views, ctr, 'mail'), null);
 });
 
-test('implied relationships that disagree on technology keep none, however many merge', () => {
+test('implied relationships that disagree on technology list every protocol once', () => {
   const local = indexModel({
     elements: [
       { id: 's', type: 'softwareSystem', name: 'S' },
@@ -106,5 +106,5 @@ test('implied relationships that disagree on technology keep none, however many 
   });
   const [merged] = liftRelationships(local, new Set(['s', 't']));
   assert.equal(merged.count, 3);
-  assert.equal(merged.technology, undefined);
+  assert.equal(merged.technology, 'HTTP, gRPC');
 });

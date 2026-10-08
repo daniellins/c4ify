@@ -50,6 +50,7 @@ function usage() {
   c4ify deliver c4 <model.json> [output.html] --view <key> [--json] [--open] [--quality standard|showcase]
   c4ify preview c4 <model.json> [output.html] [--view <key>] [--no-open] [--quality standard|showcase]
   c4ify validate c4 <model.json> [--view <key>] [--json] [--quality standard|showcase]
+  c4ify draft c4 <model.json> [output-directory] [--view <key>] [--png] [--json] [--quality standard|showcase]
   c4ify check <output.html>
   c4ify visual-check <output.html> [--json]
   c4ify guide [scenario or question] [--json] [--lang en|pt]
@@ -274,7 +275,9 @@ function checkerDiagnostics(checker) {
     diagnostics.push(diagnostic({
       code,
       severity,
-      message: `Final artifact failed ${code}.`,
+      // Method advisories carry their own explanation (e.g. which acronym);
+      // surface it instead of hiding it in the evidence.
+      message: evidence.message ? `${code}: ${evidence.message}` : `Final artifact failed ${code}.`,
       subject: relationship ? { relationship } : { check: 'composition' },
       evidence,
       supportedFixes: COMPOSITION_FIXES[code] || [],
@@ -1192,6 +1195,78 @@ function printAllViews(command, summary) {
   if (command === 'deliver' && summary.ok) console.log(`entry ${summary.entry}`);
 }
 
+// Draft: render every view (or --view) even when composition gates fail, so
+// the author can look at the layout while fixing it. HARD model rules still
+// stop the render. Problems are outlined in red on the diagram and listed
+// above it; nothing is verified or committed atomically (use deliver for that).
+async function commandDraft(rawArgs) {
+  const png = rawArgs.includes('--png');
+  const args = rawArgs.filter((arg) => arg !== '--png');
+  const json = args.includes('--json');
+  const { passthrough, positional } = splitAllViewsArgs('draft', args);
+  const [type, input, target] = positional;
+  if (type !== 'c4' || !input || positional.length > 3) fail('Usage: c4ify draft c4 <model.json> [output-directory] [--view <key>] [--png] [--quality standard|showcase] [--json]');
+  const qualityIndex = passthrough.indexOf('--quality');
+  const qualityEquals = passthrough.find((arg) => arg.startsWith('--quality='));
+  const quality = qualityIndex >= 0 ? passthrough[qualityIndex + 1] : qualityEquals ? qualityEquals.slice('--quality='.length) : 'showcase';
+  let model;
+  try {
+    model = JSON.parse(fs.readFileSync(path.resolve(input), 'utf8'));
+  } catch (error) {
+    fail(`Could not read model "${input}": ${error.message}`, 1);
+  }
+  const keys = selectedView ? [selectedView] : (Array.isArray(model?.views) ? model.views.map((view) => view?.key).filter(Boolean) : []);
+  if (!keys.length) fail('The model has no views to draft.', 1);
+  const base = path.basename(input).replace(/\.c4\.json$|\.json$/i, '');
+  const directory = path.resolve(target || `${base}-c4-draft`);
+  fs.mkdirSync(directory, { recursive: true });
+  const views = keys.map((key) => {
+    const output = path.join(directory, `${key}.html`);
+    const result = runNode([rendererPath(type), path.resolve(input), output], {
+      stdio: 'pipe',
+      env: { C4IFY_VIEW: key, C4IFY_DRAFT: '1', ARCHIFY_QUALITY_PROFILE: quality, ARCHIFY_DIAGNOSTIC_FORMAT: 'json' },
+    });
+    const line = (result.stderr || '').split(/\r?\n/).find((entry) => entry.startsWith('C4IFY_DRAFT_PROBLEMS '));
+    if (result.status !== 0 || !line) {
+      const failure = rendererFailure(result);
+      return { view: key, ok: false, rendered: false, error: failure.error, diagnostics: failure.diagnostics };
+    }
+    const report = JSON.parse(line.slice('C4IFY_DRAFT_PROBLEMS '.length));
+    return { view: key, ok: report.problems.length === 0, rendered: true, output, layout: report.candidate, ratio: report.ratio, problems: report.problems };
+  });
+  if (png) {
+    // One quick 1440×900 light capture per view (visual-check takes 8).
+    const { captureSnapshot } = await import('./visual-check.mjs');
+    for (const view of views.filter((entry) => entry.rendered)) {
+      try {
+        const snapshot = await captureSnapshot({ artifactPath: view.output, screenshotPath: view.output.replace(/\.html$/i, '.png') });
+        view.screenshot = snapshot.screenshot;
+        view.fitsScreen = snapshot.fitsScreen;
+      } catch (error) {
+        view.screenshotError = error.message;
+      }
+    }
+  }
+  const summary = { schemaVersion: 1, ok: views.every((view) => view.ok), command: 'draft', quality, directory, views };
+  if (json) {
+    console.log(JSON.stringify(summary, null, 2));
+  } else {
+    for (const view of views) {
+      if (!view.rendered) {
+        console.error(`FAILED ${view.view}: ${view.error}`);
+        for (const entry of view.diagnostics || []) console.error(`  [${entry.code}] ${entry.message}`);
+        continue;
+      }
+      const layout = `${view.layout.direction}, ${view.layout.maxPerRow}/row, ${view.layout.elementWidth}px, +${view.layout.gapBoost} gap, ${view.ratio}:1`;
+      console.log(`${view.ok ? 'clean' : `${view.problems.length} problems`} ${view.view} ${view.output} (${layout})`);
+      if (view.screenshot) console.log(`  screenshot ${view.screenshot}${view.fitsScreen === false ? ' (scrolls at 1440×900)' : ''}`);
+      if (view.screenshotError) console.log(`  screenshot failed: ${view.screenshotError}`);
+      for (const problem of view.problems) console.log(`  - ${problem}`);
+    }
+  }
+  if (!summary.ok) process.exitCode = 1;
+}
+
 async function commandAllViews(command, args) {
   const json = args.includes('--json');
   const open = args.includes('--open');
@@ -1402,6 +1477,9 @@ try {
     case 'validate':
       if (!selectedView && allViewsRequested(args)) await commandAllViews('validate', args);
       else commandValidate(args);
+      break;
+    case 'draft':
+      await commandDraft(args);
       break;
     case 'check':
       commandCheck(args);

@@ -50,6 +50,8 @@ export const C4_MESSAGES = {
   'c4.context.inside': ['Inside {name}', 'Dentro de {name}'],
   'c4.context.level': ['Level: {level}', 'Nível: {level}'],
   'c4.edge.merged': ['{count} model relationships', '{count} relações do modelo'],
+  'c4.draft.title': ['Draft: {count} layout problems to fix (outlined in red)', 'Rascunho: {count} problemas de layout a corrigir (contornados em vermelho)'],
+  'c4.draft.clean': ['No layout problems: deliver it.', 'Nenhum problema de layout: pode entregar.'],
   'c4.glossary.title': ['Acronyms', 'Siglas'],
   'c4.glossary.item': ['{term}: {meaning}', '{term}: {meaning}'],
 

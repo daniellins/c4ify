@@ -6,7 +6,7 @@
 // at the bottom. Inside the scope, elements are ranked by the longest path of
 // in-scope relationships, data stores sink to the last inner row, and every
 // row is ordered by the barycenter of its neighbours to keep arrows short and
-// uncrossed. `view.placement` overrides any element's { row, col }.
+// uncrossed. `view.placement` (applied by scene.mjs) overrides any cell.
 
 const STORE = /\b(sql|postgres(?:ql)?|mysql|mariadb|oracle|mongo(?:db)?|redis|cassandra|dynamo(?:db)?|elasticsearch|opensearch|database|banco de dados|db|s3|blob|bucket|data lake|warehouse)\b/i;
 
@@ -94,12 +94,9 @@ function finish(view, { top, core, side, bottom }, edges, zoomed) {
   // of column 0; shift everything so the leftmost cell is column 0.
   const minCol = Math.min(...[...cells.values()].map((cell) => cell.col));
   if (minCol < 0) for (const [id, cell] of cells) cells.set(id, { row: cell.row, col: cell.col - minCol });
+  // view.placement is applied by the scene, which knows the orientation
+  // (placement always means the visual row/column).
   const sideIds = new Set(fixed.keys());
-  for (const [id, cell] of Object.entries(view.placement || {})) {
-    if (!cells.has(id)) continue;
-    cells.set(id, { row: cell.row, col: cell.col });
-    sideIds.delete(id);
-  }
   const boundaryRows = new Set();
   if (zoomed) for (let index = coreStart; index < coreStart + core.length; index += 1) boundaryRows.add(index);
   return { cells, boundaryRows, sideIds };
@@ -111,16 +108,55 @@ function pushRow(rows, elements) {
 
 // Longest-path layering over in-scope edges (cycles broken by authored order),
 // with stores pinned to the last layer.
+// Edges that close a cycle (depth-first, roots and neighbours visited in id
+// order so the choice is stable for a given model).
+function cycleClosingEdges(core, inner) {
+  const outgoing = new Map(core.map((element) => [element.id, []]));
+  for (const edge of inner) outgoing.get(edge.from).push(edge);
+  for (const list of outgoing.values()) list.sort((left, right) => left.to.localeCompare(right.to));
+  const state = new Map();
+  const closing = new Set();
+  const visit = (id) => {
+    state.set(id, 'open');
+    for (const edge of outgoing.get(id)) {
+      const next = state.get(edge.to);
+      if (next === 'open') closing.add(edge);
+      else if (!next) visit(edge.to);
+    }
+    state.set(id, 'done');
+  };
+  for (const id of [...outgoing.keys()].sort()) if (!state.has(id)) visit(id);
+  return closing;
+}
+
+// Sibling calls: when a calls b and c, and b also calls c, longest-path
+// layering puts c a row below b, so a's arrow to c must cross b's row. Keep c
+// in b's row instead (the row-adjacency pass then puts them side by side).
+function liftSiblingCalls(inner, rank, cyclic) {
+  for (const edge of inner) {
+    if (cyclic.has(edge)) continue;
+    const { from: b, to: c } = edge;
+    if (rank.get(c) !== rank.get(b) + 1) continue;
+    const sharedCaller = inner.some((first) => first.to === b && !cyclic.has(first)
+      && rank.get(first.from) === rank.get(b) - 1
+      && inner.some((second) => second.from === first.from && second.to === c));
+    // Only when nothing else forces c down (no other caller one row above it).
+    const pinned = inner.some((other) => other.to === c && other.from !== b && !cyclic.has(other) && rank.get(other.from) === rank.get(c) - 1
+      && !inner.some((link) => link.from === other.from && link.to === b));
+    if (sharedCaller && !pinned) rank.set(c, rank.get(b));
+  }
+}
+
 function rankCore(core, edges, coreIds) {
   const inner = edges.filter((edge) => coreIds.has(edge.from) && coreIds.has(edge.to));
   const rank = new Map(core.map((element) => [element.id, 0]));
-  const position = new Map(core.map((element, index) => [element.id, index]));
+  const cyclic = cycleClosingEdges(core, inner);
   for (let pass = 0; pass < core.length; pass += 1) {
     let changed = false;
     for (const edge of inner) {
-      // Back edges (to an element authored earlier and already ranked above)
-      // do not push ranks, so cycles terminate.
-      if (position.get(edge.to) < position.get(edge.from) && rank.get(edge.to) <= rank.get(edge.from)) continue;
+      // Only an edge that closes a real cycle is ignored, so ranks of an
+      // acyclic graph never depend on the order elements were authored.
+      if (cyclic.has(edge)) continue;
       const next = rank.get(edge.from) + 1;
       if (next > rank.get(edge.to)) {
         rank.set(edge.to, next);
@@ -129,6 +165,7 @@ function rankCore(core, edges, coreIds) {
     }
     if (!changed) break;
   }
+  liftSiblingCalls(inner, rank, cyclic);
   // Elements nothing calls (workers, schedulers) are peers of the services
   // they feed: same row, beside them, never stacked above them where their
   // outbound arrows would have to cross the service.
@@ -144,6 +181,7 @@ function rankCore(core, edges, coreIds) {
       rank.set(element.id, Math.max(0, ...core.filter((other) => !infra.has(other.id) && other.id !== element.id).map((other) => rank.get(other.id))));
     }
   }
+  invertSharedHubs(core, edges, inner, infra, rank);
   const stores = core.filter((element) => infra.has(element.id));
   const others = core.filter((element) => !infra.has(element.id));
   const layers = [];
@@ -154,6 +192,42 @@ function rankCore(core, edges, coreIds) {
   const compact = layers.filter(Boolean);
   if (stores.length) compact.push(stores);
   return compact;
+}
+
+// The "sandwich": a hub (e.g. a checkout service) calls several services that
+// its own caller (e.g. the frontend) also calls. Longest-path layering stacks
+// caller, hub, shared services, so every caller arrow crosses the hub's row.
+// Instead the shared services move up to the hub's row and the hub drops one
+// row below them: the caller reaches them from above, the hub from below, and
+// the hub's private callees sit under the hub.
+const SANDWICH_MIN_SHARED = 2;
+const SANDWICH_MIN_FANOUT = 3;
+// Candidates are found on a snapshot of the ranks, then applied only when
+// they touch disjoint elements, largest fan-out first (ties by id), so one hub
+// never undoes another and the result does not depend on authored order.
+function invertSharedHubs(core, edges, inner, infra, rank) {
+  const coreIds = new Set(core.map((element) => element.id));
+  const snapshot = new Map(rank);
+  const candidates = [];
+  for (const hub of core) {
+    if (infra.has(hub.id)) continue;
+    const callees = [...new Set(inner.filter((edge) => edge.from === hub.id && !infra.has(edge.to)).map((edge) => edge.to))];
+    if (callees.length < SANDWICH_MIN_FANOUT) continue;
+    const callers = new Set(edges.filter((edge) => edge.to === hub.id).map((edge) => edge.from));
+    const shared = callees.filter((id) => edges.some((edge) => edge.to === id && edge.from !== hub.id && callers.has(edge.from)));
+    if (shared.length < SANDWICH_MIN_SHARED) continue;
+    candidates.push({ hub: hub.id, level: snapshot.get(hub.id), shared, own: callees.filter((id) => !shared.includes(id) && coreIds.has(id)) });
+  }
+  candidates.sort((left, right) => (right.shared.length + right.own.length) - (left.shared.length + left.own.length) || left.hub.localeCompare(right.hub));
+  const touched = new Set();
+  for (const candidate of candidates) {
+    const members = [candidate.hub, ...candidate.shared, ...candidate.own];
+    if (members.some((id) => touched.has(id))) continue;
+    members.forEach((id) => touched.add(id));
+    for (const id of candidate.shared) rank.set(id, candidate.level);
+    rank.set(candidate.hub, candidate.level + 1);
+    for (const id of candidate.own) rank.set(id, Math.max(snapshot.get(id), candidate.level + 1));
+  }
 }
 
 function orderByBarycenter(rows, edges, fixed = new Map()) {
@@ -186,4 +260,27 @@ function orderByBarycenter(rows, edges, fixed = new Map()) {
   const down = rows.map((_row, index) => index);
   sweep(down.slice(1));
   sweep(down.slice(0, -1).reverse());
+  keepRowNeighboursAdjacent(rows, edges);
+}
+
+// Two elements of one row that talk to each other sit side by side, so their
+// arrow is one short horizontal segment instead of a run across the row.
+function keepRowNeighboursAdjacent(rows, edges) {
+  for (const row of rows) {
+    const ids = new Set(row.map((element) => element.id));
+    for (const edge of edges) {
+      if (!ids.has(edge.from) || !ids.has(edge.to)) continue;
+      const from = row.findIndex((element) => element.id === edge.from);
+      const to = row.findIndex((element) => element.id === edge.to);
+      if (Math.abs(from - to) <= 1) continue;
+      // Move the element with fewer same-row ties next to the other one.
+      const ties = (id) => edges.filter((other) => (other.from === id && ids.has(other.to)) || (other.to === id && ids.has(other.from))).length;
+      const [moving, anchorId] = ties(edge.from) <= ties(edge.to) ? [edge.from, edge.to] : [edge.to, edge.from];
+      // Keep the side it came from: a mover from the right lands right of the anchor.
+      const cameFromRight = row.findIndex((item) => item.id === moving) > row.findIndex((item) => item.id === anchorId);
+      const [element] = row.splice(row.findIndex((item) => item.id === moving), 1);
+      const anchorIndex = row.findIndex((item) => item.id === anchorId);
+      row.splice(cameFromRight ? anchorIndex + 1 : anchorIndex, 0, element);
+    }
+  }
 }
