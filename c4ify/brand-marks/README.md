@@ -10,7 +10,7 @@ Unknown sites are handled by an explicit two-stage workflow. Run
 digest-pinned `brand` value. Normal render and validate commands do not perform
 an unpinned capture, and changed or unavailable content fails closed.
 
-Most vector paths and brand metadata are generated from Simple Icons 16.32.0.
+Most vector paths and brand metadata are generated from Simple Icons 16.34.0.
 The OpenAI mark is traced to OpenAI's official brand guidelines. Every generated
 entry records its source and, when available upstream, its guidelines and license
 metadata in `renderers/shared/generated-brand-marks.mjs`.
